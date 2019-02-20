@@ -16,8 +16,8 @@ import re  # noqa: F401
 
 import six
 
-from black_fox_client.models.optimization_engine_config import OptimizationEngineConfig  # noqa: F401,E501
-from black_fox_client.models.range import Range  # noqa: F401,E501
+from blackfox.models.optimization_engine_config import OptimizationEngineConfig  # noqa: F401,E501
+from blackfox.models.range import Range  # noqa: F401,E501
 
 
 class KerasOptimizationConfig(object):

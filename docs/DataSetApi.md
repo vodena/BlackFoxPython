@@ -1,4 +1,4 @@
-# black_fox_client.DataSetApi
+# blackfox.DataSetApi
 
 All URIs are relative to *https://localhost*
 
@@ -18,12 +18,12 @@ Download dataset file (*.csv)
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.DataSetApi()
+api_instance = blackfox.DataSetApi()
 id = 'id_example' # str | Dataset Id
 
 try:
@@ -64,12 +64,12 @@ Check if csv file exist
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.DataSetApi()
+api_instance = blackfox.DataSetApi()
 id = 'id_example' # str | File hash(sha1)
 
 try:
@@ -109,12 +109,12 @@ Upload csv file
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.DataSetApi()
+api_instance = blackfox.DataSetApi()
 file = '/path/to/file.txt' # file |  (optional)
 
 try:

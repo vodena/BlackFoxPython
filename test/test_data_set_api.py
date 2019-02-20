@@ -15,16 +15,16 @@ from __future__ import absolute_import
 
 import unittest
 
-import black_fox_client
-from black_fox_client.api.data_set_api import DataSetApi  # noqa: E501
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.api.data_set_api import DataSetApi  # noqa: E501
+from blackfox.rest import ApiException
 
 
 class TestDataSetApi(unittest.TestCase):
     """DataSetApi unit test stubs"""
 
     def setUp(self):
-        self.api = black_fox_client.api.data_set_api.DataSetApi()  # noqa: E501
+        self.api = blackfox.api.data_set_api.DataSetApi()  # noqa: E501
 
     def tearDown(self):
         pass

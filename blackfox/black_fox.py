@@ -1,12 +1,12 @@
-from black_fox_client.api.data_set_api import DataSetApi
-from black_fox_client.api.network_api import NetworkApi
-from black_fox_client.api.prediction_api import PredictionApi
-from black_fox_client.api.training_api import TrainingApi
-from black_fox_client.api.optimization_api import OptimizationApi
+from blackfox.api.data_set_api import DataSetApi
+from blackfox.api.network_api import NetworkApi
+from blackfox.api.prediction_api import PredictionApi
+from blackfox.api.training_api import TrainingApi
+from blackfox.api.optimization_api import OptimizationApi
 
-from black_fox_client.api_client import ApiClient
-from black_fox_client.configuration import Configuration
-from black_fox_client.rest import ApiException
+from blackfox.api_client import ApiClient
+from blackfox.configuration import Configuration
+from blackfox.rest import ApiException
 
 import hashlib
 import os

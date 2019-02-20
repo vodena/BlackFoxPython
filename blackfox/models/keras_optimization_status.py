@@ -16,7 +16,7 @@ import re  # noqa: F401
 
 import six
 
-from black_fox_client.models.keras_optimized_network import KerasOptimizedNetwork  # noqa: F401,E501
+from blackfox.models.keras_optimized_network import KerasOptimizedNetwork  # noqa: F401,E501
 
 
 class KerasOptimizationStatus(object):

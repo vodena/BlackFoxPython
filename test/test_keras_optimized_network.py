@@ -15,9 +15,9 @@ from __future__ import absolute_import
 
 import unittest
 
-import black_fox_client
-from black_fox_client.models.keras_optimized_network import KerasOptimizedNetwork  # noqa: E501
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.models.keras_optimized_network import KerasOptimizedNetwork  # noqa: E501
+from blackfox.rest import ApiException
 
 
 class TestKerasOptimizedNetwork(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestKerasOptimizedNetwork(unittest.TestCase):
     def testKerasOptimizedNetwork(self):
         """Test KerasOptimizedNetwork"""
         # FIXME: construct object with mandatory attributes with example values
-        # model = black_fox_client.models.keras_optimized_network.KerasOptimizedNetwork()  # noqa: E501
+        # model = blackfox.models.keras_optimized_network.KerasOptimizedNetwork()  # noqa: E501
         pass
 
 

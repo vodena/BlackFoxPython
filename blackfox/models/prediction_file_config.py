@@ -16,7 +16,7 @@ import re  # noqa: F401
 
 import six
 
-from black_fox_client.models.range_map import RangeMap  # noqa: F401,E501
+from blackfox.models.range_map import RangeMap  # noqa: F401,E501
 
 
 class PredictionFileConfig(object):

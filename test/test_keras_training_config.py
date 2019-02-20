@@ -15,9 +15,9 @@ from __future__ import absolute_import
 
 import unittest
 
-import black_fox_client
-from black_fox_client.models.keras_training_config import KerasTrainingConfig  # noqa: E501
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.models.keras_training_config import KerasTrainingConfig  # noqa: E501
+from blackfox.rest import ApiException
 
 
 class TestKerasTrainingConfig(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestKerasTrainingConfig(unittest.TestCase):
     def testKerasTrainingConfig(self):
         """Test KerasTrainingConfig"""
         # FIXME: construct object with mandatory attributes with example values
-        # model = black_fox_client.models.keras_training_config.KerasTrainingConfig()  # noqa: E501
+        # model = blackfox.models.keras_training_config.KerasTrainingConfig()  # noqa: E501
         pass
 
 

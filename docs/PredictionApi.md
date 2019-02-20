@@ -1,4 +1,4 @@
-# black_fox_client.PredictionApi
+# blackfox.PredictionApi
 
 All URIs are relative to *https://localhost*
 
@@ -17,13 +17,13 @@ Method | HTTP request | Description
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.PredictionApi()
-config = black_fox_client.PredictionArrayConfig() # PredictionArrayConfig |  (optional)
+api_instance = blackfox.PredictionApi()
+config = blackfox.PredictionArrayConfig() # PredictionArrayConfig |  (optional)
 
 try:
     api_response = api_instance.post_array(config=config)
@@ -62,13 +62,13 @@ No authorization required
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.PredictionApi()
-config = black_fox_client.PredictionFileConfig() # PredictionFileConfig |  (optional)
+api_instance = blackfox.PredictionApi()
+config = blackfox.PredictionFileConfig() # PredictionFileConfig |  (optional)
 
 try:
     api_response = api_instance.post_file(config=config)

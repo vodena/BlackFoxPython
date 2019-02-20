@@ -23,7 +23,7 @@ pip install git+https://github.com/GIT_USER_ID/GIT_REPO_ID.git
 
 Then import the package:
 ```python
-import black_fox_client 
+import blackfox 
 ```
 
 ### Setuptools
@@ -37,7 +37,7 @@ python setup.py install --user
 
 Then import the package:
 ```python
-import black_fox_client
+import blackfox
 ```
 
 ## Getting Started
@@ -47,11 +47,11 @@ Please follow the [installation procedure](#installation--usage) and then run th
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 # create an instance of the API class
-api_instance = black_fox_client.DataSetApi()
+api_instance = blackfox.DataSetApi()
 id = 'id_example' # str | Dataset Id
 
 try:

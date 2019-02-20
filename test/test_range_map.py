@@ -15,9 +15,9 @@ from __future__ import absolute_import
 
 import unittest
 
-import black_fox_client
-from black_fox_client.models.range_map import RangeMap  # noqa: E501
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.models.range_map import RangeMap  # noqa: E501
+from blackfox.rest import ApiException
 
 
 class TestRangeMap(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestRangeMap(unittest.TestCase):
     def testRangeMap(self):
         """Test RangeMap"""
         # FIXME: construct object with mandatory attributes with example values
-        # model = black_fox_client.models.range_map.RangeMap()  # noqa: E501
+        # model = blackfox.models.range_map.RangeMap()  # noqa: E501
         pass
 
 

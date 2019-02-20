@@ -15,9 +15,9 @@ from __future__ import absolute_import
 
 import unittest
 
-import black_fox_client
-from black_fox_client.models.prediction_file_config import PredictionFileConfig  # noqa: E501
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.models.prediction_file_config import PredictionFileConfig  # noqa: E501
+from blackfox.rest import ApiException
 
 
 class TestPredictionFileConfig(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestPredictionFileConfig(unittest.TestCase):
     def testPredictionFileConfig(self):
         """Test PredictionFileConfig"""
         # FIXME: construct object with mandatory attributes with example values
-        # model = black_fox_client.models.prediction_file_config.PredictionFileConfig()  # noqa: E501
+        # model = blackfox.models.prediction_file_config.PredictionFileConfig()  # noqa: E501
         pass
 
 

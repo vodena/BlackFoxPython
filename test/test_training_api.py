@@ -15,16 +15,16 @@ from __future__ import absolute_import
 
 import unittest
 
-import black_fox_client
-from black_fox_client.api.training_api import TrainingApi  # noqa: E501
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.api.training_api import TrainingApi  # noqa: E501
+from blackfox.rest import ApiException
 
 
 class TestTrainingApi(unittest.TestCase):
     """TrainingApi unit test stubs"""
 
     def setUp(self):
-        self.api = black_fox_client.api.training_api.TrainingApi()  # noqa: E501
+        self.api = blackfox.api.training_api.TrainingApi()  # noqa: E501
 
     def tearDown(self):
         pass

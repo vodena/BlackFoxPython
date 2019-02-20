@@ -16,8 +16,8 @@ import re  # noqa: F401
 
 import six
 
-from black_fox_client.models.hidden_layer_config_keras_activation_function import HiddenLayerConfigKerasActivationFunction  # noqa: F401,E501
-from black_fox_client.models.layer_config_keras_activation_function import LayerConfigKerasActivationFunction  # noqa: F401,E501
+from blackfox.models.hidden_layer_config_keras_activation_function import HiddenLayerConfigKerasActivationFunction  # noqa: F401,E501
+from blackfox.models.layer_config_keras_activation_function import LayerConfigKerasActivationFunction  # noqa: F401,E501
 
 
 class KerasTrainingConfig(object):

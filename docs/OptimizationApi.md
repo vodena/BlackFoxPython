@@ -1,4 +1,4 @@
-# black_fox_client.OptimizationApi
+# blackfox.OptimizationApi
 
 All URIs are relative to *https://localhost*
 
@@ -18,12 +18,12 @@ Method | HTTP request | Description
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.OptimizationApi()
+api_instance = blackfox.OptimizationApi()
 id = 'id_example' # str | 
 
 try:
@@ -63,12 +63,12 @@ No authorization required
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.OptimizationApi()
+api_instance = blackfox.OptimizationApi()
 id = 'id_example' # str | 
 optimization_action = 'optimization_action_example' # str | 
 
@@ -109,13 +109,13 @@ No authorization required
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.OptimizationApi()
-config = black_fox_client.KerasOptimizationConfig() # KerasOptimizationConfig |  (optional)
+api_instance = blackfox.OptimizationApi()
+config = blackfox.KerasOptimizationConfig() # KerasOptimizationConfig |  (optional)
 
 try:
     api_response = api_instance.post_async(config=config)

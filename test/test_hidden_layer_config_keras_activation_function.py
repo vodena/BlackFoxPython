@@ -15,9 +15,9 @@ from __future__ import absolute_import
 
 import unittest
 
-import black_fox_client
-from black_fox_client.models.hidden_layer_config_keras_activation_function import HiddenLayerConfigKerasActivationFunction  # noqa: E501
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.models.hidden_layer_config_keras_activation_function import HiddenLayerConfigKerasActivationFunction  # noqa: E501
+from blackfox.rest import ApiException
 
 
 class TestHiddenLayerConfigKerasActivationFunction(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestHiddenLayerConfigKerasActivationFunction(unittest.TestCase):
     def testHiddenLayerConfigKerasActivationFunction(self):
         """Test HiddenLayerConfigKerasActivationFunction"""
         # FIXME: construct object with mandatory attributes with example values
-        # model = black_fox_client.models.hidden_layer_config_keras_activation_function.HiddenLayerConfigKerasActivationFunction()  # noqa: E501
+        # model = blackfox.models.hidden_layer_config_keras_activation_function.HiddenLayerConfigKerasActivationFunction()  # noqa: E501
         pass
 
 

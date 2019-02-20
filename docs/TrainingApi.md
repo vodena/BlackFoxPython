@@ -1,4 +1,4 @@
-# black_fox_client.TrainingApi
+# blackfox.TrainingApi
 
 All URIs are relative to *https://localhost*
 
@@ -16,13 +16,13 @@ Method | HTTP request | Description
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.TrainingApi()
-value = black_fox_client.KerasTrainingConfig() # KerasTrainingConfig |  (optional)
+api_instance = blackfox.TrainingApi()
+value = blackfox.KerasTrainingConfig() # KerasTrainingConfig |  (optional)
 
 try:
     api_response = api_instance.post(value=value)

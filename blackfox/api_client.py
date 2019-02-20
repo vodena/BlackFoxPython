@@ -23,9 +23,9 @@ import tempfile
 import six
 from six.moves.urllib.parse import quote
 
-from black_fox_client.configuration import Configuration
-import black_fox_client.models
-from black_fox_client import rest
+from blackfox.configuration import Configuration
+import blackfox.models
+from blackfox import rest
 
 
 class ApiClient(object):
@@ -258,7 +258,7 @@ class ApiClient(object):
             if klass in self.NATIVE_TYPES_MAPPING:
                 klass = self.NATIVE_TYPES_MAPPING[klass]
             else:
-                klass = getattr(black_fox_client.models, klass)
+                klass = getattr(blackfox.models, klass)
 
         if klass in self.PRIMITIVE_TYPES:
             return self.__deserialize_primitive(data, klass)

@@ -4,13 +4,13 @@ from __future__ import absolute_import
 
 import unittest
 
-from black_fox_client.blackfox import BlackFox  # noqa: E501
-from black_fox_client.models import LayerConfigKerasActivationFunction
-from black_fox_client.models import PredictionFileConfig
-from black_fox_client.models import PredictionArrayConfig
-from black_fox_client.models import KerasTrainingConfig
-from black_fox_client.models import Range
-from black_fox_client.models import HiddenLayerConfigKerasActivationFunction
+from blackfox.blackfox import BlackFox  # noqa: E501
+from blackfox.models import LayerConfigKerasActivationFunction
+from blackfox.models import PredictionFileConfig
+from blackfox.models import PredictionArrayConfig
+from blackfox.models import KerasTrainingConfig
+from blackfox.models import Range
+from blackfox.models import HiddenLayerConfigKerasActivationFunction
 
 
 class TestDataSetApi(unittest.TestCase):

@@ -1,4 +1,4 @@
-# black_fox_client.NetworkApi
+# blackfox.NetworkApi
 
 All URIs are relative to *https://localhost*
 
@@ -18,12 +18,12 @@ Download nework file (*.onnx)
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.NetworkApi()
+api_instance = blackfox.NetworkApi()
 id = 'id_example' # str | Nework Id
 
 try:
@@ -64,12 +64,12 @@ Check if onnx file exist
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.NetworkApi()
+api_instance = blackfox.NetworkApi()
 id = 'id_example' # str | File hash(sha1)
 
 try:
@@ -109,12 +109,12 @@ Upload onnx file
 ```python
 from __future__ import print_function
 import time
-import black_fox_client
-from black_fox_client.rest import ApiException
+import blackfox
+from blackfox.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = black_fox_client.NetworkApi()
+api_instance = blackfox.NetworkApi()
 file = '/path/to/file.txt' # file |  (optional)
 
 try:
