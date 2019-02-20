@@ -1,0 +1,13 @@
+# PredictionFileConfig
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**data_set_id** | **str** |  | [optional] 
+**network_id** | **str** |  | [optional] 
+**input_ranges** | [**list[RangeMap]**](RangeMap.md) |  | [optional] 
+**output_ranges** | [**list[RangeMap]**](RangeMap.md) |  | [optional] 
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+
