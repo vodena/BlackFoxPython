@@ -36,6 +36,5 @@ from blackfox.models.optimization_engine_config import OptimizationEngineConfig
 from blackfox.models.prediction_array_config import PredictionArrayConfig
 from blackfox.models.prediction_file_config import PredictionFileConfig
 from blackfox.models.range import Range
-from blackfox.models.range_map import RangeMap
 from blackfox.models.trained_network import TrainedNetwork
 from blackfox.black_fox import BlackFox

@@ -4,13 +4,15 @@ from __future__ import absolute_import
 
 import unittest
 
-from blackfox.blackfox import BlackFox  # noqa: E501
+from blackfox import BlackFox  # noqa: E501
 from blackfox.models import LayerConfigKerasActivationFunction
 from blackfox.models import PredictionFileConfig
 from blackfox.models import PredictionArrayConfig
 from blackfox.models import KerasTrainingConfig
 from blackfox.models import Range
 from blackfox.models import HiddenLayerConfigKerasActivationFunction
+from blackfox import KerasOptimizationConfig
+from blackfox import OptimizationEngineConfig
 
 
 class TestDataSetApi(unittest.TestCase):
@@ -171,6 +173,70 @@ class TestDataSetApi(unittest.TestCase):
             'C:/Users/Korisnik/Desktop/Cancer/network_download.csv'
         )
         pass
+
+    def test_optimize(self):
+        engine_config = OptimizationEngineConfig(
+            crossover_distribution_index=20,
+            crossover_probability=0.9,
+            mutation_distribution_index=20,
+            mutation_probability=0.01,
+            proc_timeout_miliseconds=200000,
+            max_num_of_generations=50,
+            number_of_constraints=0,
+            population_size=100,
+            number_of_eval_per_request=1
+        )
+
+        config = KerasOptimizationConfig(
+            dropout=Range(min=0, max=25),
+            dataset_id='f56e2c4fa71050ee4f55c6335947ad0b9bd47d85',
+            batch_size=10,
+            input_ranges=[
+                Range(min=0, max=1),
+                Range(min=0, max=1),
+                Range(min=0, max=1),
+                Range(min=0, max=1),
+                Range(min=0, max=1),
+                Range(min=0, max=1),
+                Range(min=0, max=1),
+                Range(min=0, max=1),
+                Range(min=0, max=1)
+            ],
+            output_ranges=[
+                Range(min=0, max=1),
+                Range(min=0, max=1)
+            ],
+            hidden_layer_count_range=Range(min=1, max=15),
+            neurons_per_layer=Range(min=1, max=10),
+            training_algorithms=["SGD", "RMSprop", "Adagrad",
+                                 "Adadelta", "Adam", "Adamax", "Nadam"],
+            activation_functions=["SoftMax", "Elu", "Selu", "SoftPlus",
+                                  "SoftSign", "ReLu", "TanH", "Sigmoid",
+                                  "HardSigmoid", "Linear"],
+            max_epoch=3000,
+            cross_validation=False,
+            training_ratio=0.7,
+            random_seed=100,
+            engine_config=engine_config
+        )
+
+        id = self.blackfox.optimize_keras(config)
+        print(id)
+        pass
+
+    def test_optimization_stop(self):
+        self.blackfox.stop_optimization_keras(
+            'c2db8231-da65-4821-b628-b0c8be17db7d',
+            'C:/Users/Korisnik/Desktop/Cancer/net.onnx'
+        )
+        pass
+
+    def test_optimization_status(self):
+        res = self.blackfox.get_optimization_status_keras(
+            'c2db8231-da65-4821-b628-b0c8be17db7d',
+            'C:/Users/Korisnik/Desktop/Cancer/net.onnx'
+        )
+        print(res)
 
 
 if __name__ == '__main__':

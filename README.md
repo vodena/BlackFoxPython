@@ -87,7 +87,6 @@ Class | Method | HTTP request | Description
  - [PredictionArrayConfig](docs/PredictionArrayConfig.md)
  - [PredictionFileConfig](docs/PredictionFileConfig.md)
  - [Range](docs/Range.md)
- - [RangeMap](docs/RangeMap.md)
  - [TrainedNetwork](docs/TrainedNetwork.md)
 
 

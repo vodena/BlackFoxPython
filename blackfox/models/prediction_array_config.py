@@ -16,7 +16,7 @@ import re  # noqa: F401
 
 import six
 
-from blackfox.models.range_map import RangeMap  # noqa: F401,E501
+from blackfox.models.range import Range  # noqa: F401,E501
 
 
 class PredictionArrayConfig(object):
@@ -35,8 +35,8 @@ class PredictionArrayConfig(object):
     swagger_types = {
         'data_set': 'list[list[float]]',
         'network_id': 'str',
-        'input_ranges': 'list[RangeMap]',
-        'output_ranges': 'list[RangeMap]'
+        'input_ranges': 'list[Range]',
+        'output_ranges': 'list[Range]'
     }
 
     attribute_map = {
@@ -112,7 +112,7 @@ class PredictionArrayConfig(object):
 
 
         :return: The input_ranges of this PredictionArrayConfig.  # noqa: E501
-        :rtype: list[RangeMap]
+        :rtype: list[Range]
         """
         return self._input_ranges
 
@@ -122,7 +122,7 @@ class PredictionArrayConfig(object):
 
 
         :param input_ranges: The input_ranges of this PredictionArrayConfig.  # noqa: E501
-        :type: list[RangeMap]
+        :type: list[Range]
         """
 
         self._input_ranges = input_ranges
@@ -133,7 +133,7 @@ class PredictionArrayConfig(object):
 
 
         :return: The output_ranges of this PredictionArrayConfig.  # noqa: E501
-        :rtype: list[RangeMap]
+        :rtype: list[Range]
         """
         return self._output_ranges
 
@@ -143,7 +143,7 @@ class PredictionArrayConfig(object):
 
 
         :param output_ranges: The output_ranges of this PredictionArrayConfig.  # noqa: E501
-        :type: list[RangeMap]
+        :type: list[Range]
         """
 
         self._output_ranges = output_ranges
