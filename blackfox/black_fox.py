@@ -12,6 +12,8 @@ import hashlib
 import shutil
 import time
 from datetime import datetime
+import signal
+import sys
 
 BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
@@ -143,7 +145,7 @@ class BlackFox:
         data_set_path=None,
         network_path=None,
         status_interval=5,
-        log_path=None
+        log_file=sys.stdout
     ):
         """
         Find optimal network for given problem.
@@ -152,41 +154,58 @@ class BlackFox:
         :param str data_set_path:
         :param str network_path:
         :param int status_interval:
-        :param str log_path:
+        :param str log_file:
         :return: KerasOptimizationStatus: 
                 If data_set_path is not None upload data set,
                 and sets config.dataset_id to new id.
                 If network_path is not None download network to given file.
-                If log_path is not None write to log file 
+                If log_file is not None write to log file 
                 every 5 seconds(status_interval)
         """
         if data_set_path is not None:
+            log_file.write("Uploading data set " + data_set_path + "\n")
             config.dataset_id = self.upload_data_set(data_set_path)
+
         id = self.optimization_api.post_async(config=config)
+
+        def signal_handler(sig, frame):
+            log_file.write("Stopping optimization : "+id+"\n")
+            self.stop_optimization_keras(id)
+
+        signal.signal(signal.SIGINT, signal_handler)
+        if isinstance(log_file, str):
+            log_file = open(log_file, "a")
+
         running = True
         status = None
         while running:
             status = self.optimization_api.get_status_async(id)
             running = (status.state == 'Active')
-            if log_path is not None:
-                with open(log_path, "a") as log_file:
-                    log_file.write(
-                        ("%s -> %s, Generation: %s/%s, Validation set error: %f, Training set error: %f, Epoch: %d, OptId: %s\n") %
-                        (
-                            datetime.now(),
-                            status.state,
-                            status.generation,
-                            status.total_generations,
-                            status.validation_set_error,
-                            status.training_set_error,
-                            status.epoch,
-                            id
-                        )
+            if log_file is not None:
+                log_file.write(
+                    ("%s -> %s, "
+                     "Generation: %s/%s, "
+                     "Validation set error: %f, "
+                     "Training set error: %f, "
+                     "Epoch: %d, "
+                     "OptId: %s\n") %
+                    (
+                        datetime.now(),
+                        status.state,
+                        status.generation,
+                        status.total_generations,
+                        status.validation_set_error,
+                        status.training_set_error,
+                        status.epoch,
+                        id
                     )
+                )
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            if network_path is not None:
+            if network_path is not None and status.network.id is not None:
+                log_file.write("Downloading network " +
+                               status.network.id + " to " + network_path + "\n")
                 self.download_network(status.network.id, network_path)
             return status
 
