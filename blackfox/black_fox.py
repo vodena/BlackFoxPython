@@ -31,6 +31,14 @@ class BlackFox:
         self.training_api = TrainingApi(self.client)
         self.optimization_api = OptimizationApi(self.client)
 
+    def log(self, stream, msg):
+        if isinstance(stream, str):
+            with open(stream, mode='a', encoding='utf-8', buffering=1) as f:
+                f.write(msg)
+        else:
+            stream.write(msg)
+            stream.flush()
+
     def upload_data_set(self, path):
         id = self.sha1(path)
         try:
@@ -162,19 +170,18 @@ class BlackFox:
                 If log_file is not None write to log file 
                 every 5 seconds(status_interval)
         """
+
         if data_set_path is not None:
-            log_file.write("Uploading data set " + data_set_path + "\n")
+            self.log(log_file, "Uploading data set " + data_set_path + "\n")
             config.dataset_id = self.upload_data_set(data_set_path)
 
         id = self.optimization_api.post_async(config=config)
 
         def signal_handler(sig, frame):
-            log_file.write("Stopping optimization : "+id+"\n")
+            self.log(log_file, "Stopping optimization : "+id+"\n")
             self.stop_optimization_keras(id)
 
         signal.signal(signal.SIGINT, signal_handler)
-        if isinstance(log_file, str):
-            log_file = open(log_file, "a")
 
         running = True
         status = None
@@ -182,7 +189,8 @@ class BlackFox:
             status = self.optimization_api.get_status_async(id)
             running = (status.state == 'Active')
             if log_file is not None:
-                log_file.write(
+                self.log(
+                    log_file,
                     ("%s -> %s, "
                      "Generation: %s/%s, "
                      "Validation set error: %f, "
@@ -204,8 +212,9 @@ class BlackFox:
 
         if status.state == 'Finished' or status.state == 'Stopped':
             if network_path is not None and status.network.id is not None:
-                log_file.write("Downloading network " +
-                               status.network.id + " to " + network_path + "\n")
+                self.log(log_file,
+                         "Downloading network " +
+                         status.network.id + " to " + network_path + "\n")
                 self.download_network(status.network.id, network_path)
             return status
 
