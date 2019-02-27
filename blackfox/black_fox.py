@@ -179,6 +179,7 @@ class BlackFox:
 
         def signal_handler(sig, frame):
             self.log(log_file, "Stopping optimization : "+id+"\n")
+            print("Stopping optimization : "+id)
             self.stop_optimization_keras(id)
 
         signal.signal(signal.SIGINT, signal_handler)

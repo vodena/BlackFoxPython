@@ -16,7 +16,7 @@ import re  # noqa: F401
 
 import six
 
-from blackfox.models.hidden_layer_config_keras_activation_function import HiddenLayerConfigKerasActivationFunction  # noqa: F401,E501
+from blackfox.models.keras_hidden_layer_config import KerasHiddenLayerConfig  # noqa: F401,E501
 
 
 class KerasOptimizedNetwork(object):
@@ -35,7 +35,7 @@ class KerasOptimizedNetwork(object):
     swagger_types = {
         'dropout': 'float',
         'id': 'str',
-        'hidden_layers': 'list[HiddenLayerConfigKerasActivationFunction]',
+        'hidden_layers': 'list[KerasHiddenLayerConfig]',
         'training_algorithm': 'str'
     }
 
@@ -112,7 +112,7 @@ class KerasOptimizedNetwork(object):
 
 
         :return: The hidden_layers of this KerasOptimizedNetwork.  # noqa: E501
-        :rtype: list[HiddenLayerConfigKerasActivationFunction]
+        :rtype: list[KerasHiddenLayerConfig]
         """
         return self._hidden_layers
 
@@ -122,7 +122,7 @@ class KerasOptimizedNetwork(object):
 
 
         :param hidden_layers: The hidden_layers of this KerasOptimizedNetwork.  # noqa: E501
-        :type: list[HiddenLayerConfigKerasActivationFunction]
+        :type: list[KerasHiddenLayerConfig]
         """
 
         self._hidden_layers = hidden_layers

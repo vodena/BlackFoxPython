@@ -5,12 +5,12 @@ from __future__ import absolute_import
 import unittest
 
 from blackfox import BlackFox  # noqa: E501
-from blackfox.models import LayerConfigKerasActivationFunction
+from blackfox.models import KerasLayerConfig
 from blackfox.models import PredictionFileConfig
 from blackfox.models import PredictionArrayConfig
 from blackfox.models import KerasTrainingConfig
 from blackfox.models import Range
-from blackfox.models import HiddenLayerConfigKerasActivationFunction
+from blackfox.models import KerasHiddenLayerConfig
 from blackfox import KerasOptimizationConfig
 from blackfox import OptimizationEngineConfig
 
@@ -25,7 +25,7 @@ class TestDataSetApi(unittest.TestCase):
         pass
 
     def test_train_keras(self):
-        input_layer = LayerConfigKerasActivationFunction(
+        input_layer = KerasLayerConfig(
             activation_function='Sigmoid',
             ranges=[
                 Range(min=0, max=1),
@@ -39,7 +39,7 @@ class TestDataSetApi(unittest.TestCase):
             ]
         )
 
-        output_layer = LayerConfigKerasActivationFunction(
+        output_layer = KerasLayerConfig(
             activation_function='Sigmoid',
             ranges=[
                 Range(min=0, max=1),
@@ -48,19 +48,19 @@ class TestDataSetApi(unittest.TestCase):
         )
 
         hidden_layer_configs = [
-            HiddenLayerConfigKerasActivationFunction(
+            KerasHiddenLayerConfig(
                 neuron_count=6,
                 activation_function='Sigmoid'
             ),
-            HiddenLayerConfigKerasActivationFunction(
+            KerasHiddenLayerConfig(
                 neuron_count=6,
                 activation_function='Sigmoid'
             ),
-            HiddenLayerConfigKerasActivationFunction(
+            KerasHiddenLayerConfig(
                 neuron_count=6,
                 activation_function='Sigmoid'
             ),
-            HiddenLayerConfigKerasActivationFunction(
+            KerasHiddenLayerConfig(
                 neuron_count=6,
                 activation_function='Sigmoid'
             )

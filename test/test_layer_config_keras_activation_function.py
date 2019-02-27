@@ -16,12 +16,12 @@ from __future__ import absolute_import
 import unittest
 
 import blackfox
-from blackfox.models.layer_config_keras_activation_function import LayerConfigKerasActivationFunction  # noqa: E501
+from blackfox.models.keras_layer_config import KerasLayerConfig  # noqa: E501
 from blackfox.rest import ApiException
 
 
-class TestLayerConfigKerasActivationFunction(unittest.TestCase):
-    """LayerConfigKerasActivationFunction unit test stubs"""
+class TestKerasLayerConfig(unittest.TestCase):
+    """KerasLayerConfig unit test stubs"""
 
     def setUp(self):
         pass
@@ -29,10 +29,10 @@ class TestLayerConfigKerasActivationFunction(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testLayerConfigKerasActivationFunction(self):
-        """Test LayerConfigKerasActivationFunction"""
+    def testKerasLayerConfig(self):
+        """Test KerasLayerConfig"""
         # FIXME: construct object with mandatory attributes with example values
-        # model = blackfox.models.layer_config_keras_activation_function.LayerConfigKerasActivationFunction()  # noqa: E501
+        # model = blackfox.models.keras_layer_config.KerasLayerConfig()  # noqa: E501
         pass
 
 

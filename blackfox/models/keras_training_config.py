@@ -16,8 +16,8 @@ import re  # noqa: F401
 
 import six
 
-from blackfox.models.hidden_layer_config_keras_activation_function import HiddenLayerConfigKerasActivationFunction  # noqa: F401,E501
-from blackfox.models.layer_config_keras_activation_function import LayerConfigKerasActivationFunction  # noqa: F401,E501
+from blackfox.models.keras_hidden_layer_config import KerasHiddenLayerConfig  # noqa: F401,E501
+from blackfox.models.keras_layer_config import KerasLayerConfig  # noqa: F401,E501
 
 
 class KerasTrainingConfig(object):
@@ -36,9 +36,9 @@ class KerasTrainingConfig(object):
     swagger_types = {
         'dropout': 'float',
         'dataset_id': 'str',
-        'input_layer': 'LayerConfigKerasActivationFunction',
-        'output_layer': 'LayerConfigKerasActivationFunction',
-        'hidden_layer_configs': 'list[HiddenLayerConfigKerasActivationFunction]',
+        'input_layer': 'KerasLayerConfig',
+        'output_layer': 'KerasLayerConfig',
+        'hidden_layer_configs': 'list[KerasHiddenLayerConfig]',
         'training_algorithm': 'str',
         'max_epoch': 'int',
         'cross_validation': 'bool',
@@ -143,7 +143,7 @@ class KerasTrainingConfig(object):
 
 
         :return: The input_layer of this KerasTrainingConfig.  # noqa: E501
-        :rtype: LayerConfigKerasActivationFunction
+        :rtype: KerasLayerConfig
         """
         return self._input_layer
 
@@ -153,7 +153,7 @@ class KerasTrainingConfig(object):
 
 
         :param input_layer: The input_layer of this KerasTrainingConfig.  # noqa: E501
-        :type: LayerConfigKerasActivationFunction
+        :type: KerasLayerConfig
         """
 
         self._input_layer = input_layer
@@ -164,7 +164,7 @@ class KerasTrainingConfig(object):
 
 
         :return: The output_layer of this KerasTrainingConfig.  # noqa: E501
-        :rtype: LayerConfigKerasActivationFunction
+        :rtype: KerasLayerConfig
         """
         return self._output_layer
 
@@ -174,7 +174,7 @@ class KerasTrainingConfig(object):
 
 
         :param output_layer: The output_layer of this KerasTrainingConfig.  # noqa: E501
-        :type: LayerConfigKerasActivationFunction
+        :type: KerasLayerConfig
         """
 
         self._output_layer = output_layer
@@ -185,7 +185,7 @@ class KerasTrainingConfig(object):
 
 
         :return: The hidden_layer_configs of this KerasTrainingConfig.  # noqa: E501
-        :rtype: list[HiddenLayerConfigKerasActivationFunction]
+        :rtype: list[KerasHiddenLayerConfig]
         """
         return self._hidden_layer_configs
 
@@ -195,7 +195,7 @@ class KerasTrainingConfig(object):
 
 
         :param hidden_layer_configs: The hidden_layer_configs of this KerasTrainingConfig.  # noqa: E501
-        :type: list[HiddenLayerConfigKerasActivationFunction]
+        :type: list[KerasHiddenLayerConfig]
         """
 
         self._hidden_layer_configs = hidden_layer_configs

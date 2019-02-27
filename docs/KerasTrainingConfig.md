@@ -5,9 +5,9 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **dropout** | **float** |  | [optional] 
 **dataset_id** | **str** |  | [optional] 
-**input_layer** | [**LayerConfigKerasActivationFunction**](LayerConfigKerasActivationFunction.md) |  | [optional] 
-**output_layer** | [**LayerConfigKerasActivationFunction**](LayerConfigKerasActivationFunction.md) |  | [optional] 
-**hidden_layer_configs** | [**list[HiddenLayerConfigKerasActivationFunction]**](HiddenLayerConfigKerasActivationFunction.md) |  | [optional] 
+**input_layer** | [**KerasLayerConfig**](KerasLayerConfig.md) |  | [optional] 
+**output_layer** | [**KerasLayerConfig**](KerasLayerConfig.md) |  | [optional] 
+**hidden_layer_configs** | [**list[KerasHiddenLayerConfig]**](KerasHiddenLayerConfig.md) |  | [optional] 
 **training_algorithm** | **str** |  | [optional] 
 **max_epoch** | **int** |  | [optional] 
 **cross_validation** | **bool** |  | [optional] 

@@ -16,12 +16,12 @@ from __future__ import absolute_import
 import unittest
 
 import blackfox
-from blackfox.models.hidden_layer_config_keras_activation_function import HiddenLayerConfigKerasActivationFunction  # noqa: E501
+from blackfox.models.keras_hidden_layer_config import KerasHiddenLayerConfig  # noqa: E501
 from blackfox.rest import ApiException
 
 
-class TestHiddenLayerConfigKerasActivationFunction(unittest.TestCase):
-    """HiddenLayerConfigKerasActivationFunction unit test stubs"""
+class TestKerasHiddenLayerConfig(unittest.TestCase):
+    """KerasHiddenLayerConfig unit test stubs"""
 
     def setUp(self):
         pass
@@ -29,10 +29,10 @@ class TestHiddenLayerConfigKerasActivationFunction(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testHiddenLayerConfigKerasActivationFunction(self):
-        """Test HiddenLayerConfigKerasActivationFunction"""
+    def testKerasHiddenLayerConfig(self):
+        """Test KerasHiddenLayerConfig"""
         # FIXME: construct object with mandatory attributes with example values
-        # model = blackfox.models.hidden_layer_config_keras_activation_function.HiddenLayerConfigKerasActivationFunction()  # noqa: E501
+        # model = blackfox.models.keras_hidden_layer_config.KerasHiddenLayerConfig()  # noqa: E501
         pass
 
 
