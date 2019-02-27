@@ -50,6 +50,7 @@ config = KerasOptimizationConfig(
     engine_config=engine_config
 )
 
+# Use CTRL + C to stop optimization
 status = bf.optimize_keras_sync(
     config,
     'data/cancer_train_set.csv',

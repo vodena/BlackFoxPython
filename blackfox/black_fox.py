@@ -170,7 +170,7 @@ class BlackFox:
                 If log_file is not None write to log file 
                 every 5 seconds(status_interval)
         """
-
+        print('Use CTRL + C to stop optimization')
         if data_set_path is not None:
             self.log(log_file, "Uploading data set " + data_set_path + "\n")
             config.dataset_id = self.upload_data_set(data_set_path)
