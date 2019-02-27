@@ -12,8 +12,7 @@ Python 2.7 and 3.4+
 ## Installation & Usage
 ### pip install
 
-Install from zip
-Download dist/blackfox-1.0.0.tar.gz
+Download [blackfox-1.0.0.tar.gz](https://github.com/tmrdja/BlackFoxPython/raw/master/dist/blackfox-1.0.0.tar.gz)
 
 ```sh
 pip install blackfox-1.0.0.tar.gz
