@@ -18,6 +18,7 @@ import six
 
 from blackfox.models.keras_hidden_layer_config import KerasHiddenLayerConfig  # noqa: F401,E501
 from blackfox.models.keras_layer_config import KerasLayerConfig  # noqa: F401,E501
+from blackfox.models.range import Range  # noqa: F401,E501
 
 
 class KerasTrainingConfig(object):
@@ -35,8 +36,9 @@ class KerasTrainingConfig(object):
     """
     swagger_types = {
         'dropout': 'float',
+        'batch_size': 'int',
         'dataset_id': 'str',
-        'input_layer': 'KerasLayerConfig',
+        'input_ranges': 'list[Range]',
         'output_layer': 'KerasLayerConfig',
         'hidden_layer_configs': 'list[KerasHiddenLayerConfig]',
         'training_algorithm': 'str',
@@ -48,8 +50,9 @@ class KerasTrainingConfig(object):
 
     attribute_map = {
         'dropout': 'dropout',
+        'batch_size': 'batchSize',
         'dataset_id': 'datasetId',
-        'input_layer': 'inputLayer',
+        'input_ranges': 'inputRanges',
         'output_layer': 'outputLayer',
         'hidden_layer_configs': 'hiddenLayerConfigs',
         'training_algorithm': 'trainingAlgorithm',
@@ -59,12 +62,13 @@ class KerasTrainingConfig(object):
         'random_seed': 'randomSeed'
     }
 
-    def __init__(self, dropout=None, dataset_id=None, input_layer=None, output_layer=None, hidden_layer_configs=None, training_algorithm=None, max_epoch=None, cross_validation=None, training_ratio=None, random_seed=None):  # noqa: E501
+    def __init__(self, dropout=None, batch_size=None, dataset_id=None, input_ranges=None, output_layer=None, hidden_layer_configs=None, training_algorithm=None, max_epoch=None, cross_validation=None, training_ratio=None, random_seed=None):  # noqa: E501
         """KerasTrainingConfig - a model defined in Swagger"""  # noqa: E501
 
         self._dropout = None
+        self._batch_size = None
         self._dataset_id = None
-        self._input_layer = None
+        self._input_ranges = None
         self._output_layer = None
         self._hidden_layer_configs = None
         self._training_algorithm = None
@@ -76,10 +80,12 @@ class KerasTrainingConfig(object):
 
         if dropout is not None:
             self.dropout = dropout
+        if batch_size is not None:
+            self.batch_size = batch_size
         if dataset_id is not None:
             self.dataset_id = dataset_id
-        if input_layer is not None:
-            self.input_layer = input_layer
+        if input_ranges is not None:
+            self.input_ranges = input_ranges
         if output_layer is not None:
             self.output_layer = output_layer
         if hidden_layer_configs is not None:
@@ -117,6 +123,27 @@ class KerasTrainingConfig(object):
         self._dropout = dropout
 
     @property
+    def batch_size(self):
+        """Gets the batch_size of this KerasTrainingConfig.  # noqa: E501
+
+
+        :return: The batch_size of this KerasTrainingConfig.  # noqa: E501
+        :rtype: int
+        """
+        return self._batch_size
+
+    @batch_size.setter
+    def batch_size(self, batch_size):
+        """Sets the batch_size of this KerasTrainingConfig.
+
+
+        :param batch_size: The batch_size of this KerasTrainingConfig.  # noqa: E501
+        :type: int
+        """
+
+        self._batch_size = batch_size
+
+    @property
     def dataset_id(self):
         """Gets the dataset_id of this KerasTrainingConfig.  # noqa: E501
 
@@ -138,25 +165,25 @@ class KerasTrainingConfig(object):
         self._dataset_id = dataset_id
 
     @property
-    def input_layer(self):
-        """Gets the input_layer of this KerasTrainingConfig.  # noqa: E501
+    def input_ranges(self):
+        """Gets the input_ranges of this KerasTrainingConfig.  # noqa: E501
 
 
-        :return: The input_layer of this KerasTrainingConfig.  # noqa: E501
-        :rtype: KerasLayerConfig
+        :return: The input_ranges of this KerasTrainingConfig.  # noqa: E501
+        :rtype: list[Range]
         """
-        return self._input_layer
+        return self._input_ranges
 
-    @input_layer.setter
-    def input_layer(self, input_layer):
-        """Sets the input_layer of this KerasTrainingConfig.
+    @input_ranges.setter
+    def input_ranges(self, input_ranges):
+        """Sets the input_ranges of this KerasTrainingConfig.
 
 
-        :param input_layer: The input_layer of this KerasTrainingConfig.  # noqa: E501
-        :type: KerasLayerConfig
+        :param input_ranges: The input_ranges of this KerasTrainingConfig.  # noqa: E501
+        :type: list[Range]
         """
 
-        self._input_layer = input_layer
+        self._input_ranges = input_ranges
 
     @property
     def output_layer(self):

@@ -3,7 +3,8 @@ from blackfox import KerasOptimizationConfig
 from blackfox import OptimizationEngineConfig
 from blackfox import Range
 
-bf = BlackFox()
+blackfox_url = 'http://localhost:50476/'
+bf = BlackFox(blackfox_url)
 
 
 engine_config = OptimizationEngineConfig(
@@ -43,7 +44,7 @@ config = KerasOptimizationConfig(
     activation_functions=["SoftMax", "Elu", "Selu", "SoftPlus",
                           "SoftSign", "ReLu", "TanH", "Sigmoid",
                           "HardSigmoid", "Linear"],
-    max_epoch=3000,
+    max_epoch=500,
     cross_validation=False,
     training_ratio=0.7,
     random_seed=100,
@@ -53,7 +54,7 @@ config = KerasOptimizationConfig(
 # Use CTRL + C to stop optimization
 status = bf.optimize_keras_sync(
     config,
-    'data/cancer_train_set.csv',
+    'data/cancer_training_set.csv',
     'data/optimized_network_cancer.onnx'
 )
 

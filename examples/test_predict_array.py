@@ -2,7 +2,8 @@ from blackfox import BlackFox
 from blackfox import PredictionArrayConfig
 from blackfox import Range
 
-bf = BlackFox()
+blackfox_url = 'http://localhost:50476/'
+bf = BlackFox(blackfox_url)
 
 config = PredictionArrayConfig(
     data_set=[
