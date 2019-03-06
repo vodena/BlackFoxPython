@@ -181,11 +181,13 @@ class BlackFox:
         Find optimal network for given problem.
 
         :param KerasOptimizationConfig config:
+        :param str input_set:
+        :param str output_set:
         :param str data_set_path:
         :param str network_path:
         :param int status_interval:
         :param str log_file:
-        :return: BytesIO: byte aaray from network model
+        :return: BytesIO: byte array from network model
                 If data_set_path is not None upload data set,
                 and sets config.dataset_id to new id.
                 If network_path is not None download network to given file.
