@@ -4,30 +4,30 @@ All URIs are relative to *https://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**get**](NetworkApi.md#get) | **GET** /api/Network/{id} | Download nework file (*.onnx)
-[**head**](NetworkApi.md#head) | **HEAD** /api/Network/{id} | Check if onnx file exist
-[**post**](NetworkApi.md#post) | **POST** /api/Network | Upload onnx file
+[**get**](NetworkApi.md#get) | **GET** /api/Network/{id} | Download nework file (*.h5)
+[**head**](NetworkApi.md#head) | **HEAD** /api/Network/{id} | Check if h5 file exist
+[**post**](NetworkApi.md#post) | **POST** /api/Network | Upload h5 file
 
 
 # **get**
 > file get(id)
 
-Download nework file (*.onnx)
+Download nework file (*.h5)
 
 ### Example
 ```python
 from __future__ import print_function
 import time
-import blackfox
-from blackfox.rest import ApiException
+import swagger_client
+from swagger_client.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = blackfox.NetworkApi()
+api_instance = swagger_client.NetworkApi()
 id = 'id_example' # str | Nework Id
 
 try:
-    # Download nework file (*.onnx)
+    # Download nework file (*.h5)
     api_response = api_instance.get(id)
     pprint(api_response)
 except ApiException as e:
@@ -58,7 +58,7 @@ No authorization required
 # **head**
 > head(id)
 
-Check if onnx file exist
+Check if h5 file exist
 
 ### Example
 ```python
@@ -73,7 +73,7 @@ api_instance = blackfox.NetworkApi()
 id = 'id_example' # str | File hash(sha1)
 
 try:
-    # Check if onnx file exist
+    # Check if h5 file exist
     api_instance.head(id)
 except ApiException as e:
     print("Exception when calling NetworkApi->head: %s\n" % e)
@@ -103,7 +103,7 @@ No authorization required
 # **post**
 > str post(file=file)
 
-Upload onnx file
+Upload h5 file
 
 ### Example
 ```python
@@ -118,7 +118,7 @@ api_instance = blackfox.NetworkApi()
 file = '/path/to/file.txt' # file |  (optional)
 
 try:
-    # Upload onnx file
+    # Upload h5 file
     api_response = api_instance.post(file=file)
     pprint(api_response)
 except ApiException as e:

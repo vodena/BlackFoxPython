@@ -14,7 +14,7 @@ Name | Type | Description | Notes
 **activation_functions** | **list[str]** |  | [optional] 
 **max_epoch** | **int** |  | [optional] 
 **cross_validation** | **bool** |  | [optional] 
-**training_ratio** | **float** |  | [optional] 
+**validation_split** | **float** |  | [optional] 
 **random_seed** | **int** |  | [optional] 
 **engine_config** | [**OptimizationEngineConfig**](OptimizationEngineConfig.md) |  | [optional] 
 
