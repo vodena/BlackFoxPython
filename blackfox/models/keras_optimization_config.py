@@ -45,7 +45,7 @@ class KerasOptimizationConfig(object):
         'activation_functions': 'list[str]',
         'max_epoch': 'int',
         'cross_validation': 'bool',
-        'training_ratio': 'float',
+        'validation_split': 'float',
         'random_seed': 'int',
         'engine_config': 'OptimizationEngineConfig'
     }
@@ -62,28 +62,31 @@ class KerasOptimizationConfig(object):
         'activation_functions': 'activationFunctions',
         'max_epoch': 'maxEpoch',
         'cross_validation': 'crossValidation',
-        'training_ratio': 'trainingRatio',
+        'validation_split': 'validationSplit',
         'random_seed': 'randomSeed',
         'engine_config': 'engineConfig'
     }
 
-    def __init__(self, dropout=None, batch_size=None, dataset_id=None, input_ranges=None, output_ranges=None, hidden_layer_count_range=None, neurons_per_layer=None, training_algorithms=None, activation_functions=None, max_epoch=None, cross_validation=None, training_ratio=None, random_seed=None, engine_config=None):  # noqa: E501
+    def __init__(self, dropout=None, batch_size=None, dataset_id=None, input_ranges=None, output_ranges=None, hidden_layer_count_range=None, neurons_per_layer=None, training_algorithms=None, activation_functions=None, max_epoch=None, cross_validation=None, validation_split=None, random_seed=None, engine_config=None):  # noqa: E501
         """KerasOptimizationConfig - a model defined in Swagger"""  # noqa: E501
 
-        self._dropout = None
-        self._batch_size = None
+        self._dropout = Range(min=0, max=25)
+        self._batch_size = 32
         self._dataset_id = None
         self._input_ranges = None
         self._output_ranges = None
-        self._hidden_layer_count_range = None
-        self._neurons_per_layer = None
-        self._training_algorithms = None
-        self._activation_functions = None
-        self._max_epoch = None
-        self._cross_validation = None
-        self._training_ratio = None
+        self._hidden_layer_count_range = Range(min=1, max=15)
+        self._neurons_per_layer = Range(min=1, max=10)
+        self._training_algorithms = ["SGD", "RMSprop", "Adagrad",
+                                     "Adadelta", "Adam", "Adamax", "Nadam"]
+        self._activation_functions = ["SoftMax", "Elu", "Selu", "SoftPlus",
+                                      "SoftSign", "ReLu", "TanH", "Sigmoid",
+                                      "HardSigmoid", "Linear"]
+        self._max_epoch = 500
+        self._cross_validation = False
+        self._validation_split = 0.2
         self._random_seed = None
-        self._engine_config = None
+        self._engine_config = OptimizationEngineConfig()
         self.discriminator = None
 
         if dropout is not None:
@@ -108,8 +111,8 @@ class KerasOptimizationConfig(object):
             self.max_epoch = max_epoch
         if cross_validation is not None:
             self.cross_validation = cross_validation
-        if training_ratio is not None:
-            self.training_ratio = training_ratio
+        if validation_split is not None:
+            self.validation_split = validation_split
         if random_seed is not None:
             self.random_seed = random_seed
         if engine_config is not None:
@@ -117,8 +120,9 @@ class KerasOptimizationConfig(object):
 
     @property
     def dropout(self):
-        """Gets the dropout of this KerasOptimizationConfig.  # noqa: E501
-
+        """Gets the dropout in percent.
+        Min value: 0
+        Max value: 100
 
         :return: The dropout of this KerasOptimizationConfig.  # noqa: E501
         :rtype: Range
@@ -361,25 +365,25 @@ class KerasOptimizationConfig(object):
         self._cross_validation = cross_validation
 
     @property
-    def training_ratio(self):
-        """Gets the training_ratio of this KerasOptimizationConfig.  # noqa: E501
+    def validation_split(self):
+        """Gets the validation_split of this KerasOptimizationConfig.  # noqa: E501
 
 
         :return: The training_ratio of this KerasOptimizationConfig.  # noqa: E501
         :rtype: float
         """
-        return self._training_ratio
+        return self._validation_split
 
-    @training_ratio.setter
-    def training_ratio(self, training_ratio):
-        """Sets the training_ratio of this KerasOptimizationConfig.
+    @validation_split.setter
+    def validation_split(self, validation_split):
+        """Sets the validation_split of this KerasOptimizationConfig.
 
 
-        :param training_ratio: The training_ratio of this KerasOptimizationConfig.  # noqa: E501
+        :param validation_split: The validation_split of this KerasOptimizationConfig.  # noqa: E501
         :type: float
         """
 
-        self._training_ratio = training_ratio
+        self._validation_split = validation_split
 
     @property
     def random_seed(self):

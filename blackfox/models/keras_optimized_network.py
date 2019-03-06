@@ -36,23 +36,26 @@ class KerasOptimizedNetwork(object):
         'dropout': 'float',
         'id': 'str',
         'hidden_layers': 'list[KerasHiddenLayerConfig]',
-        'training_algorithm': 'str'
+        'training_algorithm': 'str',
+        'output_layer_activation_function': 'str'
     }
 
     attribute_map = {
         'dropout': 'dropout',
         'id': 'id',
         'hidden_layers': 'hiddenLayers',
-        'training_algorithm': 'trainingAlgorithm'
+        'training_algorithm': 'trainingAlgorithm',
+        'output_layer_activation_function': 'outputLayerActivationFunction'
     }
 
-    def __init__(self, dropout=None, id=None, hidden_layers=None, training_algorithm=None):  # noqa: E501
+    def __init__(self, dropout=None, id=None, hidden_layers=None, training_algorithm=None, output_layer_activation_function=None):  # noqa: E501
         """KerasOptimizedNetwork - a model defined in Swagger"""  # noqa: E501
 
         self._dropout = None
         self._id = None
         self._hidden_layers = None
         self._training_algorithm = None
+        self._output_layer_activation_function = None
         self.discriminator = None
 
         if dropout is not None:
@@ -63,6 +66,8 @@ class KerasOptimizedNetwork(object):
             self.hidden_layers = hidden_layers
         if training_algorithm is not None:
             self.training_algorithm = training_algorithm
+        if output_layer_activation_function is not None:
+            self.output_layer_activation_function = output_layer_activation_function
 
     @property
     def dropout(self):
@@ -153,6 +158,33 @@ class KerasOptimizedNetwork(object):
             )
 
         self._training_algorithm = training_algorithm
+
+    @property
+    def output_layer_activation_function(self):
+        """Gets the output_layer_activation_function of this KerasOptimizedNetwork.  # noqa: E501
+
+
+        :return: The output_layer_activation_function of this KerasOptimizedNetwork.  # noqa: E501
+        :rtype: str
+        """
+        return self._output_layer_activation_function
+
+    @output_layer_activation_function.setter
+    def output_layer_activation_function(self, output_layer_activation_function):
+        """Sets the output_layer_activation_function of this KerasOptimizedNetwork.
+
+
+        :param output_layer_activation_function: The output_layer_activation_function of this KerasOptimizedNetwork.  # noqa: E501
+        :type: str
+        """
+        allowed_values = ["SoftMax", "Elu", "Selu", "SoftPlus", "SoftSign", "ReLu", "TanH", "Sigmoid", "HardSigmoid", "Linear"]  # noqa: E501
+        if output_layer_activation_function not in allowed_values:
+            raise ValueError(
+                "Invalid value for `output_layer_activation_function` ({0}), must be one of {1}"  # noqa: E501
+                .format(output_layer_activation_function, allowed_values)
+            )
+
+        self._output_layer_activation_function = output_layer_activation_function
 
     def to_dict(self):
         """Returns the model properties as a dict"""

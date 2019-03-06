@@ -44,7 +44,7 @@ class KerasTrainingConfig(object):
         'training_algorithm': 'str',
         'max_epoch': 'int',
         'cross_validation': 'bool',
-        'training_ratio': 'float',
+        'validation_split': 'float',
         'random_seed': 'int'
     }
 
@@ -58,11 +58,11 @@ class KerasTrainingConfig(object):
         'training_algorithm': 'trainingAlgorithm',
         'max_epoch': 'maxEpoch',
         'cross_validation': 'crossValidation',
-        'training_ratio': 'trainingRatio',
+        'validation_split': 'validationSplit',
         'random_seed': 'randomSeed'
     }
 
-    def __init__(self, dropout=None, batch_size=None, dataset_id=None, input_ranges=None, output_layer=None, hidden_layer_configs=None, training_algorithm=None, max_epoch=None, cross_validation=None, training_ratio=None, random_seed=None):  # noqa: E501
+    def __init__(self, dropout=None, batch_size=None, dataset_id=None, input_ranges=None, output_layer=None, hidden_layer_configs=None, training_algorithm=None, max_epoch=None, cross_validation=None, validation_split=None, random_seed=None):  # noqa: E501
         """KerasTrainingConfig - a model defined in Swagger"""  # noqa: E501
 
         self._dropout = None
@@ -74,7 +74,7 @@ class KerasTrainingConfig(object):
         self._training_algorithm = None
         self._max_epoch = None
         self._cross_validation = None
-        self._training_ratio = None
+        self._validation_split = None
         self._random_seed = None
         self.discriminator = None
 
@@ -96,8 +96,8 @@ class KerasTrainingConfig(object):
             self.max_epoch = max_epoch
         if cross_validation is not None:
             self.cross_validation = cross_validation
-        if training_ratio is not None:
-            self.training_ratio = training_ratio
+        if validation_split is not None:
+            self.validation_split = validation_split
         if random_seed is not None:
             self.random_seed = random_seed
 
@@ -297,25 +297,25 @@ class KerasTrainingConfig(object):
         self._cross_validation = cross_validation
 
     @property
-    def training_ratio(self):
-        """Gets the training_ratio of this KerasTrainingConfig.  # noqa: E501
+    def validation_split(self):
+        """Gets the validation_split of this KerasTrainingConfig.  # noqa: E501
 
 
-        :return: The training_ratio of this KerasTrainingConfig.  # noqa: E501
+        :return: The validation_split of this KerasTrainingConfig.  # noqa: E501
         :rtype: float
         """
-        return self._training_ratio
+        return self._validation_split
 
-    @training_ratio.setter
-    def training_ratio(self, training_ratio):
-        """Sets the training_ratio of this KerasTrainingConfig.
+    @validation_split.setter
+    def validation_split(self, validation_split):
+        """Sets the validation_split of this KerasTrainingConfig.
 
 
-        :param training_ratio: The training_ratio of this KerasTrainingConfig.  # noqa: E501
+        :param validation_split: The validation_split of this KerasTrainingConfig.  # noqa: E501
         :type: float
         """
 
-        self._training_ratio = training_ratio
+        self._validation_split = validation_split
 
     @property
     def random_seed(self):

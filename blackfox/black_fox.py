@@ -3,6 +3,8 @@ from blackfox.api.network_api import NetworkApi
 from blackfox.api.prediction_api import PredictionApi
 from blackfox.api.training_api import TrainingApi
 from blackfox.api.optimization_api import OptimizationApi
+from blackfox.models.keras_optimization_config import KerasOptimizationConfig
+from blackfox.models.range import Range
 
 from blackfox.api_client import ApiClient
 from blackfox.configuration import Configuration
@@ -14,6 +16,9 @@ import time
 from datetime import datetime
 import signal
 import sys
+import os
+from io import BytesIO
+from tempfile import NamedTemporaryFile
 
 BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
@@ -65,9 +70,12 @@ class BlackFox:
                 raise e
         return id
 
-    def download_network(self, id, path):
+    def download_network(self, id, path=None):
         temp_path = self.network_api.get(id)
-        shutil.move(temp_path, path)
+        if path is None:
+            return open(temp_path, 'rb')
+        else:
+            shutil.move(temp_path, path)
 
     def train_keras(
         self,
@@ -147,10 +155,24 @@ class BlackFox:
         results = self.prediction_api.post_array(config=config)
         return results
 
+    def get_ranges(self, data_set):
+        ranges = []
+        for row in data_set:
+            for i, d in enumerate(row):
+                if len(ranges) <= i or ranges[i] is None:
+                    ranges.append(Range(d, d))
+                else:
+                    r = ranges[i]
+                    r.min = min(r.min, d)
+                    r.max = max(r.max, d)
+        return ranges
+
     def optimize_keras_sync(
         self,
-        config,
+        input_set=None,
+        output_set=None,
         data_set_path=None,
+        config=KerasOptimizationConfig(),
         network_path=None,
         status_interval=5,
         log_file=sys.stdout
@@ -163,7 +185,7 @@ class BlackFox:
         :param str network_path:
         :param int status_interval:
         :param str log_file:
-        :return: KerasOptimizationStatus: 
+        :return: BytesIO: byte aaray from network model
                 If data_set_path is not None upload data set,
                 and sets config.dataset_id to new id.
                 If network_path is not None download network to given file.
@@ -171,9 +193,42 @@ class BlackFox:
                 every 5 seconds(status_interval)
         """
         print('Use CTRL + C to stop optimization')
+
+        if input_set is not None and output_set is not None:
+            tmp_file = NamedTemporaryFile(delete=False)
+            # input ranges
+            config.input_ranges = self.get_ranges(input_set)
+            # output ranges
+            config.output_ranges = self.get_ranges(output_set)
+            data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
+                                (','.join(map(str, y))), input_set, output_set))
+
+            column_count = len(config.input_ranges) + len(config.output_ranges)
+            column_range = range(0, column_count)
+            headers = map(lambda i: 'column_'+str(i), column_range)
+            data_set.insert(0, ','.join(headers))
+            csv = '\n'.join(data_set)
+            tmp_file.write(csv.encode("utf-8"))
+            tmp_file.close()
+            if data_set_path is not None:
+                self.log(log_file, 'Ignoring data_set_path\n')
+            data_set_path = str(tmp_file.name)
+
         if data_set_path is not None:
-            self.log(log_file, "Uploading data set " + data_set_path + "\n")
+            if config.input_ranges is None:
+                self.log(log_file, "config.input_ranges is None\n")
+                return None
+            if config.output_ranges is None:
+                self.log(log_file, "config.output_ranges is None\n")
+                return None
+            if tmp_file is not None:
+                self.log(log_file, "Uploading data set\n")
+            else:
+                self.log(log_file, "Uploading data set " + data_set_path + "\n")
             config.dataset_id = self.upload_data_set(data_set_path)
+
+        if tmp_file is not None:
+            os.remove(tmp_file.name)
 
         id = self.optimization_api.post_async(config=config)
 
@@ -197,7 +252,7 @@ class BlackFox:
                      "Validation set error: %f, "
                      "Training set error: %f, "
                      "Epoch: %d, "
-                     "OptId: %s\n") %
+                     "Optimization Id: %s\n") %
                     (
                         datetime.now(),
                         status.state,
@@ -212,19 +267,26 @@ class BlackFox:
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            if network_path is not None and status.network.id is not None:
+            if status.network is not None and status.network.id is not None:
                 self.log(log_file,
                          "Downloading network " +
-                         status.network.id + " to " + network_path + "\n")
-                self.download_network(status.network.id, network_path)
-            return status
+                         status.network.id + "\n")
+                network_stream = self.download_network(status.network.id)
+                data = network_stream.read()
+                if network_path is not None:
+                    self.log(log_file,
+                             "Saving network " +
+                             status.network.id + " to " + network_path + "\n")
+                    with open(network_path, 'wb') as f:
+                        f.write(data)
+                return BytesIO(data)
 
         elif status.state == 'Error':
-            # Handle error
-            raise 'Optimization error'
+            self.log(log_file, "Optimization error\n")
+            return None
         else:
-            # TODO
-            raise 'Error unknown'
+            self.log(log_file, "Unknown error\n")
+            return None
 
     def optimize_keras(
         self,

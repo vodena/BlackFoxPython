@@ -31,7 +31,7 @@ config = PredictionArrayConfig(
 
 result = bf.predict_from_array_keras(
     config,
-    'data/trained_network_cancer.onnx'
+    'data/trained_network_cancer.h5'
 )
 
 print(result)

@@ -53,8 +53,8 @@ config = KerasTrainingConfig(
     hidden_layer_configs=hidden_layer_configs,
     training_algorithm='Nadam',
     max_epoch=3000,
-    cross_validation=True,
-    training_ratio=0.7,
+    cross_validation=False,
+    validation_split=0.3,
     random_seed=500,
     batch_size=32
 )
@@ -62,5 +62,5 @@ config = KerasTrainingConfig(
 bf.train_keras(
     config,
     'data/cancer_training_set.csv',
-    'data/trained_network_cancer.onnx'
+    'data/trained_network_cancer.h5'
 )

@@ -25,7 +25,7 @@ config = PredictionFileConfig(
 
 bf.predict_from_file_keras(
     config,
-    'data/optimized_network_cancer.onnx',
+    'data/optimized_network_cancer.h5',
     'data/cancer_test_set.csv',
     'data/cancer_predict.csv'
 )

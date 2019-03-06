@@ -37,9 +37,7 @@ class OptimizationEngineConfig(object):
         'mutation_probability': 'float',
         'proc_timeout_miliseconds': 'int',
         'max_num_of_generations': 'int',
-        'number_of_constraints': 'int',
-        'population_size': 'int',
-        'number_of_eval_per_request': 'int'
+        'population_size': 'int'
     }
 
     attribute_map = {
@@ -49,23 +47,19 @@ class OptimizationEngineConfig(object):
         'mutation_probability': 'mutationProbability',
         'proc_timeout_miliseconds': 'procTimeoutMiliseconds',
         'max_num_of_generations': 'maxNumOfGenerations',
-        'number_of_constraints': 'numberOfConstraints',
-        'population_size': 'populationSize',
-        'number_of_eval_per_request': 'numberOfEvalPerRequest'
+        'population_size': 'populationSize'
     }
 
-    def __init__(self, crossover_distribution_index=None, crossover_probability=None, mutation_distribution_index=None, mutation_probability=None, proc_timeout_miliseconds=None, max_num_of_generations=None, number_of_constraints=None, population_size=None, number_of_eval_per_request=None):  # noqa: E501
+    def __init__(self, crossover_distribution_index=None, crossover_probability=None, mutation_distribution_index=None, mutation_probability=None, proc_timeout_miliseconds=None, max_num_of_generations=None, population_size=None):  # noqa: E501
         """OptimizationEngineConfig - a model defined in Swagger"""  # noqa: E501
 
-        self._crossover_distribution_index = None
-        self._crossover_probability = None
-        self._mutation_distribution_index = None
-        self._mutation_probability = None
-        self._proc_timeout_miliseconds = None
-        self._max_num_of_generations = None
-        self._number_of_constraints = None
-        self._population_size = None
-        self._number_of_eval_per_request = None
+        self._crossover_distribution_index = 20
+        self._crossover_probability = 0.9
+        self._mutation_distribution_index = 20
+        self._mutation_probability = 0.01
+        self._proc_timeout_miliseconds = 200000
+        self._max_num_of_generations = 10
+        self._population_size = 20
         self.discriminator = None
 
         if crossover_distribution_index is not None:
@@ -80,12 +74,8 @@ class OptimizationEngineConfig(object):
             self.proc_timeout_miliseconds = proc_timeout_miliseconds
         if max_num_of_generations is not None:
             self.max_num_of_generations = max_num_of_generations
-        if number_of_constraints is not None:
-            self.number_of_constraints = number_of_constraints
         if population_size is not None:
             self.population_size = population_size
-        if number_of_eval_per_request is not None:
-            self.number_of_eval_per_request = number_of_eval_per_request
 
     @property
     def crossover_distribution_index(self):
@@ -214,27 +204,6 @@ class OptimizationEngineConfig(object):
         self._max_num_of_generations = max_num_of_generations
 
     @property
-    def number_of_constraints(self):
-        """Gets the number_of_constraints of this OptimizationEngineConfig.  # noqa: E501
-
-
-        :return: The number_of_constraints of this OptimizationEngineConfig.  # noqa: E501
-        :rtype: int
-        """
-        return self._number_of_constraints
-
-    @number_of_constraints.setter
-    def number_of_constraints(self, number_of_constraints):
-        """Sets the number_of_constraints of this OptimizationEngineConfig.
-
-
-        :param number_of_constraints: The number_of_constraints of this OptimizationEngineConfig.  # noqa: E501
-        :type: int
-        """
-
-        self._number_of_constraints = number_of_constraints
-
-    @property
     def population_size(self):
         """Gets the population_size of this OptimizationEngineConfig.  # noqa: E501
 
@@ -254,27 +223,6 @@ class OptimizationEngineConfig(object):
         """
 
         self._population_size = population_size
-
-    @property
-    def number_of_eval_per_request(self):
-        """Gets the number_of_eval_per_request of this OptimizationEngineConfig.  # noqa: E501
-
-
-        :return: The number_of_eval_per_request of this OptimizationEngineConfig.  # noqa: E501
-        :rtype: int
-        """
-        return self._number_of_eval_per_request
-
-    @number_of_eval_per_request.setter
-    def number_of_eval_per_request(self, number_of_eval_per_request):
-        """Sets the number_of_eval_per_request of this OptimizationEngineConfig.
-
-
-        :param number_of_eval_per_request: The number_of_eval_per_request of this OptimizationEngineConfig.  # noqa: E501
-        :type: int
-        """
-
-        self._number_of_eval_per_request = number_of_eval_per_request
 
     def to_dict(self):
         """Returns the model properties as a dict"""
