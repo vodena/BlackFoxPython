@@ -53,5 +53,5 @@ config = KerasOptimizationConfig(
 network_stream = bf.optimize_keras_sync(
     config=config,
     data_set_path='data/cancer_training_set.csv',
-    network_path='data/trained_network_cancer.h5'
+    network_path='data/optimized_network_cancer.h5'
 )

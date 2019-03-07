@@ -32,7 +32,7 @@ network_io = bf.optimize_keras_sync(
     output_set
 )
 if network_io is not None:
-    with open('data/trained_network_cancer.h5', 'wb') as out:
+    with open('data/optimized_network_cancer.h5', 'wb') as out:
         out.write(network_io.read())
 
 #import h5py
