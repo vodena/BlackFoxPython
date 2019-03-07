@@ -197,6 +197,10 @@ class BlackFox:
         print('Use CTRL + C to stop optimization')
 
         if input_set is not None and output_set is not None:
+            if type(input_set) is not list:
+                input_set = input_set.tolist()
+            if type(output_set) is not list:
+                output_set = output_set.tolist()
             tmp_file = NamedTemporaryFile(delete=False)
             # input ranges
             config.input_ranges = self.get_ranges(input_set)
