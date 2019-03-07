@@ -232,6 +232,7 @@ class BlackFox:
         if tmp_file is not None:
             os.remove(tmp_file.name)
 
+        self.log(log_file, "Starting...\n")
         id = self.optimization_api.post_async(config=config)
 
         def signal_handler(sig, frame):
