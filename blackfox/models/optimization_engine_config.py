@@ -57,7 +57,7 @@ class OptimizationEngineConfig(object):
         self._crossover_probability = 0.9
         self._mutation_distribution_index = 20
         self._mutation_probability = 0.01
-        self._proc_timeout_miliseconds = 200000
+        self._proc_timeout_miliseconds = 2000000
         self._max_num_of_generations = 10
         self._population_size = 20
         self.discriminator = None
