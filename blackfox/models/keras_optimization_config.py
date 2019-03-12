@@ -82,7 +82,7 @@ class KerasOptimizationConfig(object):
         self._activation_functions = ["SoftMax", "Elu", "Selu", "SoftPlus",
                                       "SoftSign", "ReLu", "TanH", "Sigmoid",
                                       "HardSigmoid", "Linear"]
-        self._max_epoch = 500
+        self._max_epoch = 3000
         self._cross_validation = False
         self._validation_split = 0.2
         self._random_seed = None
