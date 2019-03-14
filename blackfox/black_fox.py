@@ -5,7 +5,7 @@ from blackfox.api.training_api import TrainingApi
 from blackfox.api.optimization_api import OptimizationApi
 from blackfox.models.keras_optimization_config import KerasOptimizationConfig
 from blackfox.models.range import Range
-
+from blackfox.validation import *
 from blackfox.api_client import ApiClient
 from blackfox.configuration import Configuration
 from blackfox.rest import ApiException
@@ -19,6 +19,7 @@ import sys
 import os
 from io import BytesIO
 from tempfile import NamedTemporaryFile
+
 
 BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
@@ -70,6 +71,7 @@ class BlackFox:
                 raise e
         return id
 
+   
     def download_network(self, id, path=None):
         temp_path = self.network_api.get(id)
         if path is None:
@@ -77,6 +79,8 @@ class BlackFox:
         else:
             shutil.move(temp_path, path)
 
+    
+    @contract(config = 'train_keras_validation')   
     def train_keras(
         self,
         config,
@@ -105,6 +109,7 @@ class BlackFox:
 
         return trained_network
 
+    @contract(config = 'predict_from_file_keras_validation')
     def predict_from_file_keras(
         self,
         config,
@@ -136,6 +141,7 @@ class BlackFox:
             self.download_data_set(result_id, result_path)
         return result_id
 
+    @contract(config = 'test_predict_array_keras_validation')
     def predict_from_array_keras(
         self,
         config,
@@ -295,6 +301,7 @@ class BlackFox:
             self.log(log_file, "Unknown error\n")
             return None
 
+    @contract(config = 'optimize_keras_validation')
     def optimize_keras(
         self,
         config,
@@ -367,10 +374,18 @@ class BlackFox:
 
     def sha1(self, path):
         sha1 = hashlib.sha1()
-        with open(path, 'rb') as f:
-            while True:
-                data = f.read(BUF_SIZE)
-                if not data:
-                    break
-                sha1.update(data)
+        try:
+         with open(path, 'rb') as f:
+             while True:
+                 data = f.read(BUF_SIZE)
+                 if not data:
+                     break
+                 sha1.update(data)
+
+        except IOError:
+            print "File "+path+" doesn't exist."
+            
+
+
         return sha1.hexdigest()
+        
