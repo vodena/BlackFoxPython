@@ -20,7 +20,6 @@ import os
 from io import BytesIO
 from tempfile import NamedTemporaryFile
 
-
 BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
 
@@ -55,7 +54,7 @@ class BlackFox:
             else:
                 raise e
         return id
-
+    
     def download_data_set(self, id, path):
         temp_path = self.data_set_api.get(id)
         shutil.move(temp_path, path)
@@ -71,7 +70,6 @@ class BlackFox:
                 raise e
         return id
 
-   
     def download_network(self, id, path=None):
         temp_path = self.network_api.get(id)
         if path is None:
@@ -79,7 +77,6 @@ class BlackFox:
         else:
             shutil.move(temp_path, path)
 
-    
     @contract(config = 'train_keras_validation')   
     def train_keras(
         self,
