@@ -138,7 +138,7 @@ class BlackFox:
             self.download_data_set(result_id, result_path)
         return result_id
 
-    @contract(config = 'test_predict_array_keras_validation')
+    @contract(config = 'predict_array_keras_validation')
     def predict_from_array_keras(
         self,
         config,

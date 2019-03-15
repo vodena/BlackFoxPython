@@ -54,7 +54,7 @@ def validate_optimize_keras(config):
 
 new_contract('train_keras_validation', lambda config: validate_train_keras(config)  )
 new_contract('predict_from_file_keras_validation', lambda config: validate_predict_from_file_keras(config)  )
-new_contract('test_predict_array_keras_validation', lambda config: validate_test_predict_array_keras(config)  )
+new_contract('predict_array_keras_validation', lambda config: validate_test_predict_array_keras(config)  )
 new_contract('optimize_keras_validation', lambda config: validate_optimize_keras(config)  )
 
 
