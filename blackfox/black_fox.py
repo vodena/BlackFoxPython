@@ -20,6 +20,8 @@ import os
 from io import BytesIO
 from tempfile import NamedTemporaryFile
 
+
+
 BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
 
@@ -77,7 +79,8 @@ class BlackFox:
         else:
             shutil.move(temp_path, path)
 
-    @contract(config = 'train_keras_validation')   
+    
+    @validate_training
     def train_keras(
         self,
         config,
@@ -106,7 +109,8 @@ class BlackFox:
 
         return trained_network
 
-    @contract(config = 'predict_from_file_keras_validation')
+  
+    @validate_prediction_file
     def predict_from_file_keras(
         self,
         config,
@@ -138,7 +142,8 @@ class BlackFox:
             self.download_data_set(result_id, result_path)
         return result_id
 
-    @contract(config = 'predict_array_keras_validation')
+  
+    @validate_prediction_array
     def predict_from_array_keras(
         self,
         config,
@@ -298,7 +303,8 @@ class BlackFox:
             self.log(log_file, "Unknown error\n")
             return None
 
-    @contract(config = 'optimize_keras_validation')
+    
+    @validate_optimization
     def optimize_keras(
         self,
         config,
@@ -314,6 +320,7 @@ class BlackFox:
                 and sets config.dataset_id to new id.
                 Return optimization id.
         """
+        #validate_optimize_keras(config)
         if data_set_path is not None:
             config.dataset_id = self.upload_data_set(data_set_path)
         return self.optimization_api.post_async(config=config)
