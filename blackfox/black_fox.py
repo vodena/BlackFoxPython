@@ -70,8 +70,9 @@ class BlackFox:
                 raise e
         return id
 
-    def download_network(self, id, path=None):
-        temp_path = self.network_api.get(id)
+    def download_network(self, id, integrate_scaler=False, network_type='h5', path=None):
+        temp_path = self.network_api.get(
+            id, integrate_scaler=integrate_scaler, network_type=network_type)
         if path is None:
             return open(temp_path, 'rb')
         else:
@@ -80,6 +81,8 @@ class BlackFox:
     def train_keras(
         self,
         config,
+        integrate_scaler=False,
+        network_type='h5',
         data_set_path=None,
         network_path=None
     ):
@@ -90,7 +93,7 @@ class BlackFox:
         :param str data_set_path:
         :param str nework_path:
         :return: TrainedNetwork
-                If data_set_path is not None upload data set 
+                If data_set_path is not None upload data set
                 and sets config.dataset_id to new id.
                 If network_path is not None 
                 download network to given file.
@@ -101,7 +104,8 @@ class BlackFox:
         trained_network = self.training_api.post(value=config)
 
         if network_path is not None:
-            self.download_network(trained_network.id, network_path)
+            self.download_network(trained_network.id, integrate_scaler=integrate_scaler,
+                                  network_type=network_type, path=network_path)
 
         return trained_network
 
@@ -171,6 +175,8 @@ class BlackFox:
         self,
         input_set=None,
         output_set=None,
+        integrate_scaler=False,
+        network_type='h5',
         data_set_path=None,
         config=KerasOptimizationConfig(),
         network_path=None,
@@ -179,15 +185,16 @@ class BlackFox:
     ):
         """
         Find optimal network for given problem.
-
         :param KerasOptimizationConfig config:
         :param str input_set:
         :param str output_set:
+        :param bool integrate_scaler:
+        :param str network_type:
         :param str data_set_path:
         :param str network_path:
         :param int status_interval:
         :param str log_file:
-        :return: BytesIO: byte array from network model
+        :return: (BytesIO, KerasOptimizedNetwork): byte array from network model, optimized network info
                 If data_set_path is not None upload data set,
                 and sets config.dataset_id to new id.
                 If network_path is not None download network to given file.
@@ -195,7 +202,7 @@ class BlackFox:
                 every 5 seconds(status_interval)
         """
         print('Use CTRL + C to stop optimization')
-
+        tmp_file = None
         if input_set is not None and output_set is not None:
             if type(input_set) is not list:
                 input_set = input_set.tolist()
@@ -223,14 +230,15 @@ class BlackFox:
         if data_set_path is not None:
             if config.input_ranges is None:
                 self.log(log_file, "config.input_ranges is None\n")
-                return None
+                return None, None, None
             if config.output_ranges is None:
                 self.log(log_file, "config.output_ranges is None\n")
-                return None
+                return None, None, None
             if tmp_file is not None:
                 self.log(log_file, "Uploading data set\n")
             else:
-                self.log(log_file, "Uploading data set " + data_set_path + "\n")
+                self.log(log_file, "Uploading data set " +
+                         data_set_path + "\n")
             config.dataset_id = self.upload_data_set(data_set_path)
 
         if tmp_file is not None:
@@ -241,7 +249,8 @@ class BlackFox:
 
         def signal_handler(sig, frame):
             self.log(log_file, "Stopping optimization : "+id+"\n")
-            print("Stopping optimization : "+id)
+            if log_file is not sys.stdout:
+                print("Stopping optimization : "+id)
             self.stop_optimization_keras(id)
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -274,11 +283,13 @@ class BlackFox:
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
+            print('stopped', status.state)
             if status.network is not None and status.network.id is not None:
                 self.log(log_file,
                          "Downloading network " +
                          status.network.id + "\n")
-                network_stream = self.download_network(status.network.id)
+                network_stream = self.download_network(status.network.id, integrate_scaler=integrate_scaler,
+                                                       network_type=network_type)
                 data = network_stream.read()
                 if network_path is not None:
                     self.log(log_file,
@@ -286,14 +297,18 @@ class BlackFox:
                              status.network.id + " to " + network_path + "\n")
                     with open(network_path, 'wb') as f:
                         f.write(data)
-                return BytesIO(data)
+                byte_io = BytesIO(data)
+                metadata = self.network_api.metadata(status.network.id)
+                return byte_io, status.network, metadata
+            else:
+                return None, None, None
 
         elif status.state == 'Error':
             self.log(log_file, "Optimization error\n")
-            return None
         else:
             self.log(log_file, "Unknown error\n")
-            return None
+
+        return None, None, None
 
     def optimize_keras(
         self,
@@ -317,6 +332,8 @@ class BlackFox:
     def get_optimization_status_keras(
         self,
         id,
+        integrate_scaler=False,
+        network_type='h5',
         network_path=None
     ):
         """
@@ -333,7 +350,8 @@ class BlackFox:
             (status.state == 'Finished' or status.state == 'Stopped')
             and (network_path is not None)
         ):
-            self.download_network(status.network.id, network_path)
+            self.download_network(status.network.id, integrate_scaler=integrate_scaler,
+                                  network_type=network_type, path=network_path)
 
         return status
 
@@ -364,6 +382,24 @@ class BlackFox:
             while state == 'Active':
                 status = self.get_optimization_status_keras(id, network_path)
                 state = status.state
+
+    def get_metadata(self, network_path):
+        """
+        Get network metadata.
+
+        :param str or BytesIO network_path:
+        :return: dict: 
+        """
+        id = None
+        if isinstance(network_path, BytesIO):
+            with NamedTemporaryFile(delete=False) as out:
+                out.write(network_path.read())
+                file_path = str(out.name)
+            id = self.sha1(file_path)
+            os.remove(file_path)
+        else:
+            id = self.sha1(network_path)
+        return self.network_api.metadata(id)
 
     def sha1(self, path):
         sha1 = hashlib.sha1()

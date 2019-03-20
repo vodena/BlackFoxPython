@@ -25,19 +25,16 @@ class TestDataSetApi(unittest.TestCase):
         pass
 
     def test_train_keras(self):
-        input_layer = KerasLayerConfig(
-            activation_function='Sigmoid',
-            ranges=[
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1)
-            ]
-        )
+        input_ranges = [
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1)
+        ]
 
         output_layer = KerasLayerConfig(
             activation_function='Sigmoid',
@@ -68,13 +65,13 @@ class TestDataSetApi(unittest.TestCase):
 
         config = KerasTrainingConfig(
             dropout=0,
-            input_layer=input_layer,
+            input_ranges=input_ranges,
             output_layer=output_layer,
             hidden_layer_configs=hidden_layer_configs,
             training_algorithm='Nadam',
             max_epoch=3000,
             cross_validation=False,
-            training_ratio=0.7,
+            validation_split=0.3,
             random_seed=500
         )
 
@@ -169,9 +166,16 @@ class TestDataSetApi(unittest.TestCase):
 
     def test_download_network(self):
         self.blackfox.download_network(
-            'B9AB1F9129944A2B7D310B05B24C5CBA097A6A86',
-            'C:/Users/Korisnik/Desktop/Cancer/network_download.csv'
+            '5d6b42c38c46655d90b67eafeefd3054904d87b5',
+            integrate_scaler=True,
+            network_type='pb',
+            path='C:/Users/Korisnik/Desktop/Cancer/network_download.csv'
         )
+        pass
+
+    def test_network_metadata(self):
+        m = self.blackfox.get_metadata('data/optimized_network_cancer.h5')
+        print(m)
         pass
 
     def test_optimize(self):
@@ -182,9 +186,7 @@ class TestDataSetApi(unittest.TestCase):
             mutation_probability=0.01,
             proc_timeout_miliseconds=200000,
             max_num_of_generations=50,
-            number_of_constraints=0,
-            population_size=100,
-            number_of_eval_per_request=1
+            population_size=100
         )
 
         config = KerasOptimizationConfig(
@@ -215,7 +217,7 @@ class TestDataSetApi(unittest.TestCase):
                                   "HardSigmoid", "Linear"],
             max_epoch=3000,
             cross_validation=False,
-            training_ratio=0.7,
+            validation_split=0.3,
             random_seed=100,
             engine_config=engine_config
         )

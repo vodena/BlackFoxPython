@@ -30,7 +30,10 @@ c = KerasOptimizationConfig(validation_split=0.2)
 (ann_io, ann_status, ann_metadata) = bf.optimize_keras_sync(
     input_set,
     output_set,
-    config=c
+    config=c,
+    network_path='data/optimized_network_cancer.onnx',
+    network_type='onnx',
+    integrate_scaler=True
 )
 
 print('\n\nann info:')
@@ -38,20 +41,3 @@ print(ann_status)
 
 print('\n\nann metadata:')
 print(ann_metadata)
-
-ann_path = 'data/optimized_network_cancer.h5'
-
-if ann_io is not None:
-    with open(ann_path, 'wb') as out:
-        out.write(ann_io.read())
-
-m1 = bf.get_metadata(ann_path)
-print('metadata file\n', m1)
-
-# import h5py
-# from keras.models import load_model
-#
-# f = h5py.File(ann_io)
-# model = load_model(f)
-#
-# print(model)
