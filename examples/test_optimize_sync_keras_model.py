@@ -23,7 +23,6 @@ c = KerasOptimizationConfig(validation_split=0.2)
     input_set,
     output_set,
     config=c,
-    network_path='data/optimized_network_scaler.h5',
     integrate_scaler=True
 )
 
@@ -33,8 +32,8 @@ print(ann_status)
 print('\nann metadata:')
 print(ann_metadata)
 
-#f = h5py.File(ann_io)
-model = load_model('data/optimized_network_scaler.h5')
+f = h5py.File(ann_io)
+model = load_model(f)
 
 #test set
 test_set = pd.read_csv('data/cancer_test_set.csv')
@@ -42,12 +41,4 @@ test_input = test_set.iloc[:, 0:input_count].values
 
 predicted = model.predict(test_input)
 print(predicted)
-
-#reset stream
-ann_io.seek(0)
-
-metadata = bf.get_metadata(ann_io)
-print('metadata from io\n', metadata)
-
-
 
