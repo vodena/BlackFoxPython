@@ -27,7 +27,7 @@ with open('data/cancer_training_set.csv') as csv_file:
 c = KerasOptimizationConfig(validation_split=0.2)
 
 # Use CTRL + C to stop optimization
-(ann_io, ann_status, ann_metadata) = bf.optimize_keras_sync(
+(ann_io, ann_info, ann_metadata) = bf.optimize_keras_sync(
     input_set,
     output_set,
     config=c,
@@ -37,7 +37,7 @@ c = KerasOptimizationConfig(validation_split=0.2)
 )
 
 print('\n\nann info:')
-print(ann_status)
+print(ann_info)
 
 print('\n\nann metadata:')
 print(ann_metadata)

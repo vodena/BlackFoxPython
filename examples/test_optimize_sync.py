@@ -27,14 +27,14 @@ with open('data/cancer_training_set.csv') as csv_file:
 c = KerasOptimizationConfig(validation_split=0.2)
 
 # Use CTRL + C to stop optimization
-(ann_io, ann_status, ann_metadata) = bf.optimize_keras_sync(
+(ann_io, ann_info, ann_metadata) = bf.optimize_keras_sync(
     input_set,
     output_set,
     config=c
 )
 
 print('\n\nann info:')
-print(ann_status)
+print(ann_info)
 
 print('\n\nann metadata:')
 print(ann_metadata)
@@ -47,11 +47,3 @@ if ann_io is not None:
 
 m1 = bf.get_metadata(ann_path)
 print('metadata file\n', m1)
-
-# import h5py
-# from keras.models import load_model
-#
-# f = h5py.File(ann_io)
-# model = load_model(f)
-#
-# print(model)
