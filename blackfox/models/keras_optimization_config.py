@@ -85,7 +85,7 @@ class KerasOptimizationConfig(object):
         self._max_epoch = 3000
         self._cross_validation = False
         self._validation_split = 0.2
-        self._random_seed = None
+        self._random_seed = 300
         self._engine_config = OptimizationEngineConfig()
         self.discriminator = None
 
