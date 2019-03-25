@@ -401,6 +401,28 @@ class BlackFox:
             id = self.sha1(network_path)
         return self.network_api.metadata(id)
 
+    def convert_to(self, network_path, network_type, network_dst_path=None):
+        id = None
+        if isinstance(network_path, BytesIO):
+            with NamedTemporaryFile(delete=False) as out:
+                out.write(network_path.read())
+                file_path = str(out.name)
+            id = self.upload_network(file_path)
+            os.remove(file_path)
+        else:
+            id = self.upload_network(network_path)
+        stream = self.download_network(id, network_type=network_type, path=network_dst_path)
+        if stream is not None:
+            data = stream.read()
+            byte_io = BytesIO(data)
+            return byte_io
+
+    def convert_to_onnx(self, network_path, network_dst_path=None):
+        self.convert_to(network_path, 'onnx', network_dst_path)
+
+    def convert_to_pb(self, network_path, network_dst_path=None):
+        self.convert_to(network_path, 'pb', network_dst_path)
+
     def sha1(self, path):
         sha1 = hashlib.sha1()
         with open(path, 'rb') as f:

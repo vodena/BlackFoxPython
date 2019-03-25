@@ -77,8 +77,8 @@ class TestDataSetApi(unittest.TestCase):
 
         self.blackfox.train_keras(
             config,
-            'C:/Users/Korisnik/Desktop/Cancer/ulazni_podaci_cancer.csv',
-            'C:/Users/Korisnik/Desktop/Cancer/trained_network.onnx'
+            '../examples/data/cancer_training_set.csv',
+            '../examples/data/optimized_network_cancer.h5'
         )
 
         pass
@@ -102,9 +102,9 @@ class TestDataSetApi(unittest.TestCase):
         )
         self.blackfox.predict_from_file_keras(
             config,
-            'C:/Users/Korisnik/Desktop/Cancer/trained_network.onnx',
-            'C:/Users/Korisnik/Desktop/Cancer/ulazni_podaci_cancer.csv',
-            'C:/Users/Korisnik/Desktop/Cancer/rezultati.csv'
+            '../examples/data/optimized_network_cancer.h5',
+            '../examples/data/cancer_test_set_input.csv',
+            '../examples/data/results.csv'
         )
         pass
 
@@ -137,7 +137,7 @@ class TestDataSetApi(unittest.TestCase):
         )
         results = self.blackfox.predict_from_array_keras(
             config,
-            'C:/Users/Korisnik/Desktop/Cancer/trained_network.onnx'
+            '../examples/data/optimized_network_cancer.h5'
         )
         print(results)
 
@@ -145,14 +145,14 @@ class TestDataSetApi(unittest.TestCase):
 
     def test_sha1(self):
         sha1 = self.blackfox.sha1(
-            'C:/Users/Korisnik/Desktop/Cancer/ulazni_podaci_cancer.csv'
+            '../examples/data/cancer_training_set_download.csv'
         )
         print(sha1)
         pass
 
     def test_upload_data_set(self):
         id = self.blackfox.upload_data_set(
-            'C:/Users/Korisnik/Desktop/Cancer/ulazni_podaci_cancer.csv'
+            '../examples/data/cancer_training_set.csv'
         )
         print(id)
         pass
@@ -160,7 +160,7 @@ class TestDataSetApi(unittest.TestCase):
     def test_download_data_set(self):
         self.blackfox.download_data_set(
             'f56e2c4fa71050ee4f55c6335947ad0b9bd47d85',
-            'C:/Users/Korisnik/Desktop/Cancer/ulazni_podaci_cancer_download.csv'
+            '../examples/data/cancer_training_set_download.csv'
         )
         pass
 
@@ -169,12 +169,12 @@ class TestDataSetApi(unittest.TestCase):
             '5d6b42c38c46655d90b67eafeefd3054904d87b5',
             integrate_scaler=True,
             network_type='pb',
-            path='C:/Users/Korisnik/Desktop/Cancer/network_download.csv'
+            path='../examples/data/optimized_network_cancer.h5'
         )
         pass
 
     def test_network_metadata(self):
-        m = self.blackfox.get_metadata('data/optimized_network_cancer.h5')
+        m = self.blackfox.get_metadata('../examples/data/optimized_network_cancer.h5')
         print(m)
         pass
 
@@ -229,16 +229,26 @@ class TestDataSetApi(unittest.TestCase):
     def test_optimization_stop(self):
         self.blackfox.stop_optimization_keras(
             'c2db8231-da65-4821-b628-b0c8be17db7d',
-            'C:/Users/Korisnik/Desktop/Cancer/net.onnx'
+            '../examples/data/optimized_network_cancer.h5'
         )
         pass
 
     def test_optimization_status(self):
         res = self.blackfox.get_optimization_status_keras(
             'c2db8231-da65-4821-b628-b0c8be17db7d',
-            'C:/Users/Korisnik/Desktop/Cancer/net.onnx'
+            '../examples/data/optimized_network_cancer.h5'
         )
         print(res)
+
+    def test_convert(self):
+        self.blackfox.convert_to_onnx(
+            'examples/data/optimized_network_cancer.h5',
+            'examples/data/optimized_network_cancer.onnx'
+        )
+        self.blackfox.convert_to_pb(
+            'examples/data/optimized_network_cancer.h5',
+            'examples/data/optimized_network_cancer.pb'
+        )
 
 
 if __name__ == '__main__':
