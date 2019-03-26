@@ -21,7 +21,6 @@ from io import BytesIO
 from tempfile import NamedTemporaryFile
 
 
-
 BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
 
@@ -56,7 +55,7 @@ class BlackFox:
             else:
                 raise e
         return id
-    
+
     def download_data_set(self, id, path):
         temp_path = self.data_set_api.get(id)
         shutil.move(temp_path, path)
@@ -80,7 +79,6 @@ class BlackFox:
         else:
             shutil.move(temp_path, path)
 
-    
     @validate_training
     def train_keras(
         self,
@@ -113,7 +111,6 @@ class BlackFox:
 
         return trained_network
 
-  
     @validate_prediction_file
     def predict_from_file_keras(
         self,
@@ -146,7 +143,6 @@ class BlackFox:
             self.download_data_set(result_id, result_path)
         return result_id
 
-  
     @validate_prediction_array
     def predict_from_array_keras(
         self,
@@ -318,7 +314,6 @@ class BlackFox:
 
         return None, None, None
 
-    
     @validate_optimization
     def optimize_keras(
         self,
@@ -335,7 +330,7 @@ class BlackFox:
                 and sets config.dataset_id to new id.
                 Return optimization id.
         """
-        #validate_optimize_keras(config)
+        # validate_optimize_keras(config)
         if data_set_path is not None:
             config.dataset_id = self.upload_data_set(data_set_path)
         return self.optimization_api.post_async(config=config)
@@ -361,8 +356,11 @@ class BlackFox:
             (status.state == 'Finished' or status.state == 'Stopped')
             and (network_path is not None)
         ):
-            self.download_network(status.network.id, integrate_scaler=integrate_scaler,
-                                  network_type=network_type, path=network_path)
+            self.download_network(
+                status.network.id,
+                integrate_scaler=integrate_scaler,
+                network_type=network_type,
+                path=network_path)
 
         return status
 
@@ -422,7 +420,11 @@ class BlackFox:
             os.remove(file_path)
         else:
             id = self.upload_network(network_path)
-        stream = self.download_network(id, network_type=network_type, path=network_dst_path)
+        stream = self.download_network(
+            id,
+            network_type=network_type,
+            path=network_dst_path
+        )
         if stream is not None:
             data = stream.read()
             byte_io = BytesIO(data)
@@ -437,17 +439,14 @@ class BlackFox:
     def sha1(self, path):
         sha1 = hashlib.sha1()
         try:
-         with open(path, 'rb') as f:
-             while True:
-                 data = f.read(BUF_SIZE)
-                 if not data:
-                     break
-                 sha1.update(data)
+            with open(path, 'rb') as f:
+                while True:
+                    data = f.read(BUF_SIZE)
+                    if not data:
+                        break
+                    sha1.update(data)
 
         except IOError:
-            print "File "+path+" doesn't exist."
-            
-
+            print("File " + path + " doesn't exist.")
 
         return sha1.hexdigest()
-        

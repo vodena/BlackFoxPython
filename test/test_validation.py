@@ -16,22 +16,22 @@ from blackfox.configuration import Configuration
 from blackfox.rest import ApiException
 
 
-class TestValidation(unittest.TestCase): 
+class TestValidation(unittest.TestCase):
 
     def tearDown(self):
         pass
+
     def test_validate_train_keras(self):
         input_ranges = [
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1),
-                Range(min=0, max=1)
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1),
+            Range(min=0, max=1)
         ]
-        
 
         output_layer = KerasLayerConfig(
             activation_function='Sigmoid',
@@ -74,6 +74,7 @@ class TestValidation(unittest.TestCase):
             random_seed=500
         )
         pass
+
     def test_validate_predict_file_keras(self):
         config = PredictionFileConfig(
             input_ranges=[
@@ -93,6 +94,7 @@ class TestValidation(unittest.TestCase):
         )
         validate_predict_from_file_keras(config)
         pass
+
     def test_validate_predict_array_keras(self):
         config = PredictionArrayConfig(
             input_ranges=[
@@ -122,8 +124,9 @@ class TestValidation(unittest.TestCase):
         )
         validate_test_predict_array_keras(config)
         pass
+
     def test_validate_optimize_keras(self):
-            engine_config = OptimizationEngineConfig(
+        engine_config = OptimizationEngineConfig(
             crossover_distribution_index=20,
             crossover_probability=0.9,
             mutation_distribution_index=20,
@@ -131,10 +134,10 @@ class TestValidation(unittest.TestCase):
             proc_timeout_miliseconds=200000,
             max_num_of_generations=50,
             population_size=100,
-         
-            )
 
-            config = KerasOptimizationConfig(
+        )
+
+        config = KerasOptimizationConfig(
             dropout=Range(min=0, max=25),
             dataset_id='f56e2c4fa71050ee4f55c6335947ad0b9bd47d85',
             batch_size=10,
@@ -167,9 +170,10 @@ class TestValidation(unittest.TestCase):
             engine_config=engine_config
         )
 
-            validate_optimize_keras(config)
-        
-            pass
+        validate_optimize_keras(config)
+
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()
