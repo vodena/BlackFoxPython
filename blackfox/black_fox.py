@@ -1,3 +1,15 @@
+from tempfile import NamedTemporaryFile
+from io import BytesIO
+import os
+import sys
+import signal
+from datetime import datetime
+import time
+import shutil
+import hashlib
+from blackfox.rest import ApiException
+from blackfox.configuration import Configuration
+from blackfox.api_client import ApiClient
 from blackfox.api.data_set_api import DataSetApi
 from blackfox.api.network_api import NetworkApi
 from blackfox.api.prediction_api import PredictionApi
@@ -5,20 +17,10 @@ from blackfox.api.training_api import TrainingApi
 from blackfox.api.optimization_api import OptimizationApi
 from blackfox.models.keras_optimization_config import KerasOptimizationConfig
 from blackfox.models.range import Range
-from blackfox.validation import *
-from blackfox.api_client import ApiClient
-from blackfox.configuration import Configuration
-from blackfox.rest import ApiException
-
-import hashlib
-import shutil
-import time
-from datetime import datetime
-import signal
-import sys
-import os
-from io import BytesIO
-from tempfile import NamedTemporaryFile
+from blackfox.validation import (validate_training,
+                                 validate_optimization,
+                                 validate_prediction_file,
+                                 validate_prediction_array)
 
 
 BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
@@ -71,7 +73,10 @@ class BlackFox:
                 raise e
         return id
 
-    def download_network(self, id, integrate_scaler=False, network_type='h5', path=None):
+    def download_network(
+        self, id, integrate_scaler=False,
+        network_type='h5', path=None
+    ):
         temp_path = self.network_api.get(
             id, integrate_scaler=integrate_scaler, network_type=network_type)
         if path is None:
@@ -106,8 +111,11 @@ class BlackFox:
         trained_network = self.training_api.post(value=config)
 
         if network_path is not None:
-            self.download_network(trained_network.id, integrate_scaler=integrate_scaler,
-                                  network_type=network_type, path=network_path)
+            self.download_network(
+                trained_network.id,
+                integrate_scaler=integrate_scaler,
+                network_type=network_type,
+                path=network_path)
 
         return trained_network
 
@@ -292,8 +300,11 @@ class BlackFox:
                 self.log(log_file,
                          "Downloading network " +
                          status.network.id + "\n")
-                network_stream = self.download_network(status.network.id, integrate_scaler=integrate_scaler,
-                                                       network_type=network_type)
+                network_stream = self.download_network(
+                    status.network.id,
+                    integrate_scaler=integrate_scaler,
+                    network_type=network_type
+                )
                 data = network_stream.read()
                 if network_path is not None:
                     self.log(log_file,
@@ -410,7 +421,7 @@ class BlackFox:
             id = self.sha1(network_path)
         return self.network_api.metadata(id)
 
-    def convert_to(self, network_path, network_type, network_dst_path=None):
+    def convert_to(self, network_path, network_type, network_dst_path=None, integrate_scaler=False):
         id = None
         if isinstance(network_path, BytesIO):
             with NamedTemporaryFile(delete=False) as out:
@@ -423,6 +434,7 @@ class BlackFox:
         stream = self.download_network(
             id,
             network_type=network_type,
+            integrate_scaler=integrate_scaler,
             path=network_dst_path
         )
         if stream is not None:
@@ -430,11 +442,19 @@ class BlackFox:
             byte_io = BytesIO(data)
             return byte_io
 
-    def convert_to_onnx(self, network_path, network_dst_path=None):
-        self.convert_to(network_path, 'onnx', network_dst_path)
+    def convert_to_onnx(
+        self, network_path,
+        network_dst_path=None, integrate_scaler=False
+    ):
+        self.convert_to(network_path, 'onnx', network_dst_path,
+                        integrate_scaler=integrate_scaler)
 
-    def convert_to_pb(self, network_path, network_dst_path=None):
-        self.convert_to(network_path, 'pb', network_dst_path)
+    def convert_to_pb(
+        self, network_path,
+        network_dst_path=None, integrate_scaler=False
+    ):
+        self.convert_to(network_path, 'pb', network_dst_path,
+                        integrate_scaler=integrate_scaler)
 
     def sha1(self, path):
         sha1 = hashlib.sha1()

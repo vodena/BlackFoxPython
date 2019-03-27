@@ -1,7 +1,5 @@
 from blackfox import BlackFox
 import io
-import os
-from tempfile import NamedTemporaryFile
 
 blackfox_url = 'http://localhost:50476/'
 bf = BlackFox(blackfox_url)

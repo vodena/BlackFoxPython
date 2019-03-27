@@ -35,6 +35,6 @@ setup(
     packages=find_packages(exclude=["test.*", "test"]),
     include_package_data=True,
     long_description="""\
-    
+        BlackFox python client
     """
 )
