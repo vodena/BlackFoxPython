@@ -226,7 +226,7 @@ class ApiClient(object):
 
         # fetch data from response object
         try:
-            data = json.loads(response.data)
+            data = json.loads(response.data.decode('utf-8'))
         except ValueError:
             data = response.data
 

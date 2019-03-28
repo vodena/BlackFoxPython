@@ -19,10 +19,10 @@ pip install blackfox
 
 ### pip install tar.gz
 
-Download [blackfox-0.0.1.tar.gz](https://github.com/tmrdja/BlackFoxPython/raw/master/dist/blackfox-0.0.1.tar.gz)
+Download [blackfox-0.0.2.tar.gz](https://github.com/tmrdja/BlackFoxPython/raw/master/dist/blackfox-0.0.2.tar.gz)
 
 ```sh
-pip install blackfox-0.0.1.tar.gz
+pip install blackfox-0.0.2.tar.gz
 ```
 
 You can install directly from Github
