@@ -10,7 +10,14 @@ Python package for communication with BlackFoxWebAPI
 Python 2.7 and 3.4+
 
 ## Installation & Usage
+
 ### pip install
+
+```sh
+pip install blackfox
+```
+
+### pip install tar.gz
 
 Download [blackfox-0.0.1.tar.gz](https://github.com/tmrdja/BlackFoxPython/raw/master/dist/blackfox-0.0.1.tar.gz)
 
