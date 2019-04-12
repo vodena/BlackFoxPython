@@ -39,6 +39,7 @@ class KerasOptimizationConfig(object):
         'dataset_id': 'str',
         'input_ranges': 'list[Range]',
         'output_ranges': 'list[Range]',
+        'problem_type': 'str',
         'hidden_layer_count_range': 'Range',
         'neurons_per_layer': 'Range',
         'training_algorithms': 'list[str]',
@@ -56,6 +57,7 @@ class KerasOptimizationConfig(object):
         'dataset_id': 'datasetId',
         'input_ranges': 'inputRanges',
         'output_ranges': 'outputRanges',
+        'problem_type': 'problemType',
         'hidden_layer_count_range': 'hiddenLayerCountRange',
         'neurons_per_layer': 'neuronsPerLayer',
         'training_algorithms': 'trainingAlgorithms',
@@ -67,7 +69,7 @@ class KerasOptimizationConfig(object):
         'engine_config': 'engineConfig'
     }
 
-    def __init__(self, dropout=None, batch_size=None, dataset_id=None, input_ranges=None, output_ranges=None, hidden_layer_count_range=None, neurons_per_layer=None, training_algorithms=None, activation_functions=None, max_epoch=None, cross_validation=None, validation_split=None, random_seed=None, engine_config=None):  # noqa: E501
+    def __init__(self, dropout=None, batch_size=None, dataset_id=None, input_ranges=None, output_ranges=None, problem_type=None, hidden_layer_count_range=None, neurons_per_layer=None, training_algorithms=None, activation_functions=None, max_epoch=None, cross_validation=None, validation_split=None, random_seed=None, engine_config=None):  # noqa: E501
         """KerasOptimizationConfig - a model defined in Swagger"""  # noqa: E501
 
         self._dropout = Range(min=0, max=25)
@@ -86,6 +88,7 @@ class KerasOptimizationConfig(object):
         self._cross_validation = False
         self._validation_split = 0.2
         self._random_seed = 300
+        self._problem_type = 'Regression'
         self._engine_config = OptimizationEngineConfig()
         self.discriminator = None
 
@@ -99,6 +102,8 @@ class KerasOptimizationConfig(object):
             self.input_ranges = input_ranges
         if output_ranges is not None:
             self.output_ranges = output_ranges
+        if problem_type is not None:
+            self.problem_type = problem_type
         if hidden_layer_count_range is not None:
             self.hidden_layer_count_range = hidden_layer_count_range
         if neurons_per_layer is not None:
@@ -223,6 +228,33 @@ class KerasOptimizationConfig(object):
         """
 
         self._output_ranges = output_ranges
+
+    @property
+    def problem_type(self):
+        """Gets the problem_type of this KerasOptimizationConfig.  # noqa: E501
+
+
+        :return: The problem_type of this KerasOptimizationConfig.  # noqa: E501
+        :rtype: str
+        """
+        return self._problem_type
+
+    @problem_type.setter
+    def problem_type(self, problem_type):
+        """Sets the problem_type of this KerasOptimizationConfig.
+
+
+        :param problem_type: The problem_type of this KerasOptimizationConfig.  # noqa: E501
+        :type: str
+        """
+        allowed_values = ["Regression", "BinaryClassification", "MultiClassClassification"]  # noqa: E501
+        if problem_type not in allowed_values:
+            raise ValueError(
+                "Invalid value for `problem_type` ({0}), must be one of {1}"  # noqa: E501
+                .format(problem_type, allowed_values)
+            )
+
+        self._problem_type = problem_type
 
     @property
     def hidden_layer_count_range(self):
@@ -369,7 +401,7 @@ class KerasOptimizationConfig(object):
         """Gets the validation_split of this KerasOptimizationConfig.  # noqa: E501
 
 
-        :return: The training_ratio of this KerasOptimizationConfig.  # noqa: E501
+        :return: The validation_split of this KerasOptimizationConfig.  # noqa: E501
         :rtype: float
         """
         return self._validation_split
