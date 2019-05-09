@@ -16,6 +16,7 @@ from blackfox.api.prediction_api import PredictionApi
 from blackfox.api.training_api import TrainingApi
 from blackfox.api.optimization_api import OptimizationApi
 from blackfox.models.keras_optimization_config import KerasOptimizationConfig
+from blackfox.models.keras_series_optimization_config import KerasSeriesOptimizationConfig
 from blackfox.models.range import Range
 from blackfox.validation import (validate_training,
                                  validate_optimization,
@@ -213,6 +214,75 @@ class BlackFox:
                 If log_file is not None write to log file 
                 every 5 seconds(status_interval)
         """
+        return self.__optimize_keras_sync(
+            is_series=False,
+            input_set=input_set,
+            output_set=output_set,
+            integrate_scaler=integrate_scaler,
+            network_type=network_type,
+            data_set_path=data_set_path,
+            config=config,
+            network_path=network_path,
+            status_interval=status_interval,
+            log_file=log_file
+        )
+
+    def optimize_series_keras_sync(
+        self,
+        input_set=None,
+        output_set=None,
+        integrate_scaler=False,
+        network_type='h5',
+        data_set_path=None,
+        config=KerasSeriesOptimizationConfig(),
+        network_path=None,
+        status_interval=5,
+        log_file=sys.stdout
+    ):
+        """
+        Find optimal network for given problem.
+        :param KerasSeriesOptimizationConfig config:
+        :param str input_set:
+        :param str output_set:
+        :param bool integrate_scaler:
+        :param str network_type:
+        :param str data_set_path:
+        :param str network_path:
+        :param int status_interval:
+        :param str log_file:
+        :return: (BytesIO, KerasOptimizedNetwork): byte array from network model, optimized network info
+                If data_set_path is not None upload data set,
+                and sets config.dataset_id to new id.
+                If network_path is not None download network to given file.
+                If log_file is not None write to log file 
+                every 5 seconds(status_interval)
+        """
+        return self.__optimize_keras_sync(
+            is_series=True,
+            input_set=input_set,
+            output_set=output_set,
+            integrate_scaler=integrate_scaler,
+            network_type=network_type,
+            data_set_path=data_set_path,
+            config=config,
+            network_path=network_path,
+            status_interval=status_interval,
+            log_file=log_file
+        )
+
+    def __optimize_keras_sync(
+        self,
+        is_series=False,
+        input_set=None,
+        output_set=None,
+        integrate_scaler=False,
+        network_type='h5',
+        data_set_path=None,
+        config=None,
+        network_path=None,
+        status_interval=5,
+        log_file=sys.stdout
+    ):
         print('Use CTRL + C to stop optimization')
         tmp_file = None
         if input_set is not None and output_set is not None:
@@ -222,9 +292,11 @@ class BlackFox:
                 output_set = output_set.tolist()
             tmp_file = NamedTemporaryFile(delete=False)
             # input ranges
-            config.input_ranges = self.get_ranges(input_set)
+            if config.input_ranges is None:
+                config.input_ranges = self.get_ranges(input_set)
             # output ranges
-            config.output_ranges = self.get_ranges(output_set)
+            if config.output_ranges is None:
+                config.output_ranges = self.get_ranges(output_set)
             data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
                                 (','.join(map(str, y))), input_set, output_set))
 
@@ -257,7 +329,10 @@ class BlackFox:
             os.remove(tmp_file.name)
 
         self.log(log_file, "Starting...\n")
-        id = self.optimization_api.post_async(config=config)
+        if is_series:
+            id = self.optimization_api.post_series_async(config=config)
+        else:    
+            id = self.optimization_api.post_async(config=config)
 
         def signal_handler(sig, frame):
             self.log(log_file, "Stopping optimization : "+id+"\n")

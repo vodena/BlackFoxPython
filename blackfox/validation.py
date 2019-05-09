@@ -104,26 +104,26 @@ def validate_optimize_keras(config):
 def validate_optimization(func):
     def decorator(*args, **kwargs):
         validate_optimize_keras(kwargs["config"])
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
     return decorator
 
 
 def validate_training(func):
     def decorator(*args, **kwargs):
         validate_train_keras(kwargs["config"])
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
     return decorator
 
 
 def validate_prediction_file(func):
     def decorator(*args, **kwargs):
         validate_predict_from_file_keras(kwargs["config"])
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
     return decorator
 
 
 def validate_prediction_array(func):
     def decorator(*args, **kwargs):
         validate_test_predict_array_keras(kwargs["config"])
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
     return decorator

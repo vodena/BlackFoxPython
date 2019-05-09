@@ -1,5 +1,5 @@
 from blackfox import BlackFox
-from blackfox import KerasOptimizationConfig
+from blackfox import KerasOptimizationConfig, OptimizationEngineConfig
 import csv
 
 blackfox_url = 'http://localhost:50476/'
@@ -14,7 +14,7 @@ with open('data/cancer_training_set.csv') as csv_file:
     line_count = 0
     for row in csv_reader:
         if line_count == 0:
-            print(f'Column names are {", ".join(row)}')
+            print('Column names are ' + (", ".join(row)))
         else:
             data = list(map(float, row))
             input_set.append(data[:input_columns])
@@ -22,9 +22,12 @@ with open('data/cancer_training_set.csv') as csv_file:
 
         line_count += 1
 
-    print(f'Processed {line_count} lines.')
+    print('Processed ' + str(line_count) + ' lines.')
 
-c = KerasOptimizationConfig(validation_split=0.2)
+c = KerasOptimizationConfig(
+    validation_split=0.2,
+    engine_config=OptimizationEngineConfig(max_num_of_generations=100)
+)
 
 # Use CTRL + C to stop optimization
 (ann_io, ann_info, ann_metadata) = bf.optimize_keras_sync(
@@ -44,6 +47,5 @@ ann_path = 'data/optimized_network_cancer.h5'
 if ann_io is not None:
     with open(ann_path, 'wb') as out:
         out.write(ann_io.read())
-
-m1 = bf.get_metadata(ann_path)
-print('metadata file\n', m1)
+    m1 = bf.get_metadata(ann_path)
+    print('metadata file\n', m1)

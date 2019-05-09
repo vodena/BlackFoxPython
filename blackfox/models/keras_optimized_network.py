@@ -33,7 +33,6 @@ class KerasOptimizedNetwork(object):
                             and the value is json key in definition.
     """
     swagger_types = {
-        'dropout': 'float',
         'id': 'str',
         'hidden_layers': 'list[KerasHiddenLayerConfig]',
         'training_algorithm': 'str',
@@ -41,25 +40,21 @@ class KerasOptimizedNetwork(object):
     }
 
     attribute_map = {
-        'dropout': 'dropout',
         'id': 'id',
         'hidden_layers': 'hiddenLayers',
         'training_algorithm': 'trainingAlgorithm',
         'output_layer_activation_function': 'outputLayerActivationFunction'
     }
 
-    def __init__(self, dropout=None, id=None, hidden_layers=None, training_algorithm=None, output_layer_activation_function=None):  # noqa: E501
+    def __init__(self, id=None, hidden_layers=None, training_algorithm=None, output_layer_activation_function=None):  # noqa: E501
         """KerasOptimizedNetwork - a model defined in Swagger"""  # noqa: E501
 
-        self._dropout = None
         self._id = None
         self._hidden_layers = None
         self._training_algorithm = None
         self._output_layer_activation_function = None
         self.discriminator = None
 
-        if dropout is not None:
-            self.dropout = dropout
         if id is not None:
             self.id = id
         if hidden_layers is not None:
@@ -68,27 +63,6 @@ class KerasOptimizedNetwork(object):
             self.training_algorithm = training_algorithm
         if output_layer_activation_function is not None:
             self.output_layer_activation_function = output_layer_activation_function
-
-    @property
-    def dropout(self):
-        """Gets the dropout of this KerasOptimizedNetwork.  # noqa: E501
-
-
-        :return: The dropout of this KerasOptimizedNetwork.  # noqa: E501
-        :rtype: float
-        """
-        return self._dropout
-
-    @dropout.setter
-    def dropout(self, dropout):
-        """Sets the dropout of this KerasOptimizedNetwork.
-
-
-        :param dropout: The dropout of this KerasOptimizedNetwork.  # noqa: E501
-        :type: float
-        """
-
-        self._dropout = dropout
 
     @property
     def id(self):

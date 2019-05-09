@@ -32,25 +32,30 @@ class KerasHiddenLayerConfig(object):
     """
     swagger_types = {
         'neuron_count': 'int',
-        'activation_function': 'str'
+        'activation_function': 'str',
+        'dropout': 'float'
     }
 
     attribute_map = {
         'neuron_count': 'neuronCount',
-        'activation_function': 'activationFunction'
+        'activation_function': 'activationFunction',
+        'dropout': 'dropout'
     }
 
-    def __init__(self, neuron_count=None, activation_function=None):  # noqa: E501
+    def __init__(self, neuron_count=None, activation_function=None, dropout=None):  # noqa: E501
         """KerasHiddenLayerConfig - a model defined in Swagger"""  # noqa: E501
 
         self._neuron_count = None
         self._activation_function = None
+        self._dropout = None
         self.discriminator = None
 
         if neuron_count is not None:
             self.neuron_count = neuron_count
         if activation_function is not None:
             self.activation_function = activation_function
+        if dropout is not None:
+            self.dropout = dropout
 
     @property
     def neuron_count(self):
@@ -99,6 +104,27 @@ class KerasHiddenLayerConfig(object):
             )
 
         self._activation_function = activation_function
+
+    @property
+    def dropout(self):
+        """Gets the dropout of this KerasHiddenLayerConfig.  # noqa: E501
+
+
+        :return: The dropout of this KerasHiddenLayerConfig.  # noqa: E501
+        :rtype: float
+        """
+        return self._dropout
+
+    @dropout.setter
+    def dropout(self, dropout):
+        """Sets the dropout of this KerasHiddenLayerConfig.
+
+
+        :param dropout: The dropout of this KerasHiddenLayerConfig.  # noqa: E501
+        :type: float
+        """
+
+        self._dropout = dropout
 
     def to_dict(self):
         """Returns the model properties as a dict"""
