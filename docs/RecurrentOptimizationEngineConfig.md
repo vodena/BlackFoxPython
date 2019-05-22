@@ -1,9 +1,8 @@
-# OptimizationEngineConfig
+# RecurrentOptimizationEngineConfig
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**optimization_algorithm** | **str** |  | [optional] 
 **crossover_distribution_index** | **int** |  | [optional] 
 **crossover_probability** | **float** |  | [optional] 
 **mutation_distribution_index** | **int** |  | [optional] 

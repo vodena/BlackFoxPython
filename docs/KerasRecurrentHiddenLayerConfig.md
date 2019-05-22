@@ -1,8 +1,10 @@
-# KerasHiddenLayerConfig
+# KerasRecurrentHiddenLayerConfig
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**recurrent_activation_function** | **str** |  | [optional] 
+**recurrent_dropout** | **float** |  | [optional] 
 **neuron_count** | **int** |  | [optional] 
 **activation_function** | **str** |  | [optional] 
 **dropout** | **float** |  | [optional] 

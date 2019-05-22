@@ -15,7 +15,9 @@ from blackfox.api.network_api import NetworkApi
 from blackfox.api.prediction_api import PredictionApi
 from blackfox.api.training_api import TrainingApi
 from blackfox.api.optimization_api import OptimizationApi
+from blackfox.api.recurrent_optimization_api import RecurrentOptimizationApi
 from blackfox.models.keras_optimization_config import KerasOptimizationConfig
+from blackfox.models.keras_recurrent_optimization_config import KerasRecurrentOptimizationConfig
 from blackfox.models.keras_series_optimization_config import KerasSeriesOptimizationConfig
 from blackfox.models.range import Range
 from blackfox.validation import (validate_training,
@@ -39,6 +41,7 @@ class BlackFox:
         self.prediction_api = PredictionApi(self.client)
         self.training_api = TrainingApi(self.client)
         self.optimization_api = OptimizationApi(self.client)
+        self.recurrent_optimization_api = RecurrentOptimizationApi(self.client)
 
     def log(self, stream, msg):
         if isinstance(stream, str):
@@ -250,7 +253,7 @@ class BlackFox:
         :param str network_path:
         :param int status_interval:
         :param str log_file:
-        :return: (BytesIO, KerasOptimizedNetwork): byte array from network model, optimized network info
+        :return: (BytesIO, KerasOptimizedNetwork, dict): byte array from network model, optimized network info, metadata
                 If data_set_path is not None upload data set,
                 and sets config.dataset_id to new id.
                 If network_path is not None download network to given file.
@@ -477,6 +480,151 @@ class BlackFox:
             while state == 'Active':
                 status = self.get_optimization_status_keras(id, network_path)
                 state = status.state
+
+    def optimize_recurrent_keras_sync(
+        self,
+        input_set=None,
+        output_set=None,
+        integrate_scaler=False,
+        network_type='h5',
+        data_set_path=None,
+        config=None,
+        network_path=None,
+        status_interval=5,
+        log_file=sys.stdout
+    ):
+        """
+        Find optimal network for given problem.
+        :param KerasRecurrentOptimizationConfig config:
+        :param str input_set:
+        :param str output_set:
+        :param bool integrate_scaler:
+        :param str network_type:
+        :param str data_set_path:
+        :param str network_path:
+        :param int status_interval:
+        :param str log_file:
+        :return: (BytesIO, KerasRecurrentOptimizedNetwork, dict): byte array from network model, optimized network info, metadata
+                If data_set_path is not None upload data set,
+                and sets config.dataset_id to new id.
+                If network_path is not None download network to given file.
+                If log_file is not None write to log file 
+                every 5 seconds(status_interval)
+        """
+        print('Use CTRL + C to stop optimization')
+        tmp_file = None
+        if input_set is not None and output_set is not None:
+            if type(input_set) is not list:
+                input_set = input_set.tolist()
+            if type(output_set) is not list:
+                output_set = output_set.tolist()
+            tmp_file = NamedTemporaryFile(delete=False)
+            # input ranges
+            if config.input_ranges is None:
+                config.input_ranges = self.get_ranges(input_set)
+            # output ranges
+            if config.output_ranges is None:
+                config.output_ranges = self.get_ranges(output_set)
+            data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
+                                (','.join(map(str, y))), input_set, output_set))
+
+            column_count = len(config.input_ranges) + len(config.output_ranges)
+            column_range = range(0, column_count)
+            headers = map(lambda i: 'column_'+str(i), column_range)
+            data_set.insert(0, ','.join(headers))
+            csv = '\n'.join(data_set)
+            tmp_file.write(csv.encode("utf-8"))
+            tmp_file.close()
+            if data_set_path is not None:
+                self.log(log_file, 'Ignoring data_set_path\n')
+            data_set_path = str(tmp_file.name)
+
+        if data_set_path is not None:
+            if config.input_ranges is None:
+                self.log(log_file, "config.input_ranges is None\n")
+                return None, None, None
+            if config.output_ranges is None:
+                self.log(log_file, "config.output_ranges is None\n")
+                return None, None, None
+            if tmp_file is not None:
+                self.log(log_file, "Uploading data set\n")
+            else:
+                self.log(log_file, "Uploading data set " +
+                         data_set_path + "\n")
+            config.dataset_id = self.upload_data_set(data_set_path)
+
+        if tmp_file is not None:
+            os.remove(tmp_file.name)
+
+        self.log(log_file, "Starting...\n")   
+        id = self.recurrent_optimization_api.post(config=config)
+
+        def signal_handler(sig, frame):
+            self.log(log_file, "Stopping optimization : "+id+"\n")
+            if log_file is not sys.stdout:
+                print("Stopping optimization : "+id)
+            self.stop_optimization_keras(id)
+
+        signal.signal(signal.SIGINT, signal_handler)
+
+        running = True
+        status = None
+        while running:
+            status = self.recurrent_optimization_api.get_status(id)
+            running = (status.state == 'Active')
+            if log_file is not None:
+                self.log(
+                    log_file,
+                    ("%s -> %s, "
+                     "Generation: %s/%s, "
+                     "Validation set error: %f, "
+                     "Training set error: %f, "
+                     "Epoch: %d, "
+                     "Optimization Id: %s\n") %
+                    (
+                        datetime.now(),
+                        status.state,
+                        status.generation,
+                        status.total_generations,
+                        status.validation_set_error,
+                        status.training_set_error,
+                        status.epoch,
+                        id
+                    )
+                )
+            time.sleep(status_interval)
+
+        if status.state == 'Finished' or status.state == 'Stopped':
+            print('stopped', status.state)
+            if status.network is not None and status.network.id is not None:
+                self.log(log_file,
+                         "Downloading network " +
+                         status.network.id + "\n")
+                network_stream = self.download_network(
+                    status.network.id,
+                    integrate_scaler=integrate_scaler,
+                    network_type=network_type
+                )
+                data = network_stream.read()
+                if network_path is not None:
+                    self.log(log_file,
+                             "Saving network " +
+                             status.network.id + " to " + network_path + "\n")
+                    with open(network_path, 'wb') as f:
+                        f.write(data)
+                byte_io = BytesIO(data)
+                metadata = self.network_api.metadata(status.network.id)
+                return byte_io, status.network, metadata
+            else:
+                return None, None, None
+
+        elif status.state == 'Error':
+            self.log(log_file, "Optimization error\n")
+        else:
+            self.log(log_file, "Unknown error\n")
+
+        return None, None, None
+
 
     def get_metadata(self, network_path):
         """

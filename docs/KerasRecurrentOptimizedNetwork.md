@@ -1,10 +1,10 @@
-# KerasOptimizedNetwork
+# KerasRecurrentOptimizedNetwork
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] 
-**hidden_layers** | [**list[KerasHiddenLayerConfig]**](KerasHiddenLayerConfig.md) |  | [optional] 
+**hidden_layers** | [**list[KerasRecurrentHiddenLayerConfig]**](KerasRecurrentHiddenLayerConfig.md) |  | [optional] 
 **training_algorithm** | **str** |  | [optional] 
 **output_layer_activation_function** | **str** |  | [optional] 
 
