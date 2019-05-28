@@ -37,6 +37,7 @@ class KerasRecurrentOptimizationConfig(object):
         'dropout': 'Range',
         'batch_size': 'int',
         'recurrent_dropout': 'Range',
+        'recurrent_output_count': 'int',
         'dataset_id': 'str',
         'input_ranges': 'list[Range]',
         'output_ranges': 'list[Range]',
@@ -56,6 +57,7 @@ class KerasRecurrentOptimizationConfig(object):
         'dropout': 'dropout',
         'batch_size': 'batchSize',
         'recurrent_dropout': 'recurrentDropout',
+        'recurrent_output_count': 'recurrentOutputCount',
         'dataset_id': 'datasetId',
         'input_ranges': 'inputRanges',
         'output_ranges': 'outputRanges',
@@ -74,6 +76,7 @@ class KerasRecurrentOptimizationConfig(object):
     def __init__(self, dropout=Range(min=0, max=25),
         batch_size=32,
         recurrent_dropout=Range(min=0, max=25),
+		recurrent_output_count=1, 
         dataset_id=None,
         input_ranges=None, output_ranges=None,
         hidden_layer_count_range=Range(min=1, max=15),
@@ -94,6 +97,7 @@ class KerasRecurrentOptimizationConfig(object):
         self._dropout = None
         self._batch_size = None
         self._recurrent_dropout = None
+        self._recurrent_output_count = None
         self._dataset_id = None
         self._input_ranges = None
         self._output_ranges = None
@@ -115,6 +119,8 @@ class KerasRecurrentOptimizationConfig(object):
             self.batch_size = batch_size
         if recurrent_dropout is not None:
             self.recurrent_dropout = recurrent_dropout
+        if recurrent_output_count is not None:
+            self.recurrent_output_count = recurrent_output_count
         if dataset_id is not None:
             self.dataset_id = dataset_id
         if input_ranges is not None:
@@ -202,6 +208,27 @@ class KerasRecurrentOptimizationConfig(object):
         """
 
         self._recurrent_dropout = recurrent_dropout
+
+    @property
+    def recurrent_output_count(self):
+        """Gets the recurrent_output_count of this KerasRecurrentOptimizationConfig.  # noqa: E501
+
+
+        :return: The recurrent_output_count of this KerasRecurrentOptimizationConfig.  # noqa: E501
+        :rtype: int
+        """
+        return self._recurrent_output_count
+
+    @recurrent_output_count.setter
+    def recurrent_output_count(self, recurrent_output_count):
+        """Sets the recurrent_output_count of this KerasRecurrentOptimizationConfig.
+
+
+        :param recurrent_output_count: The recurrent_output_count of this KerasRecurrentOptimizationConfig.  # noqa: E501
+        :type: int
+        """
+
+        self._recurrent_output_count = recurrent_output_count
 
     @property
     def dataset_id(self):

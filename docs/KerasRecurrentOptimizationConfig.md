@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 **dropout** | [**Range**](Range.md) |  | [optional] 
 **batch_size** | **int** |  | [optional] 
 **recurrent_dropout** | [**Range**](Range.md) |  | [optional] 
+**recurrent_output_count** | **int** |  | [optional] 
 **dataset_id** | **str** |  | [optional] 
 **input_ranges** | [**list[Range]**](Range.md) |  | [optional] 
 **output_ranges** | [**list[Range]**](Range.md) |  | [optional] 
