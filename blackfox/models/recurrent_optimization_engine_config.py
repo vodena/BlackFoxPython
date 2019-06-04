@@ -37,7 +37,7 @@ class RecurrentOptimizationEngineConfig(object):
         'crossover_probability': 'float',
         'mutation_distribution_index': 'int',
         'mutation_probability': 'float',
-        'proc_timeout_miliseconds': 'int',
+        'proc_timeout_seconds': 'int',
         'max_num_of_generations': 'int',
         'population_size': 'int',
         'hyper_volume': 'ConvergencyCriterion'
@@ -48,20 +48,20 @@ class RecurrentOptimizationEngineConfig(object):
         'crossover_probability': 'crossoverProbability',
         'mutation_distribution_index': 'mutationDistributionIndex',
         'mutation_probability': 'mutationProbability',
-        'proc_timeout_miliseconds': 'procTimeoutMiliseconds',
+        'proc_timeout_seconds': 'procTimeoutSeconds',
         'max_num_of_generations': 'maxNumOfGenerations',
         'population_size': 'populationSize',
         'hyper_volume': 'hyperVolume'
     }
 
-    def __init__(self, crossover_distribution_index=None, crossover_probability=None, mutation_distribution_index=None, mutation_probability=None, proc_timeout_miliseconds=None, max_num_of_generations=None, population_size=None, hyper_volume=None):  # noqa: E501
+    def __init__(self, crossover_distribution_index=None, crossover_probability=None, mutation_distribution_index=None, mutation_probability=None, proc_timeout_seconds=None, max_num_of_generations=None, population_size=None, hyper_volume=None):  # noqa: E501
         """RecurrentOptimizationEngineConfig - a model defined in Swagger"""  # noqa: E501
         
         self._crossover_distribution_index = 20
         self._crossover_probability = 0.9
         self._mutation_distribution_index = 20
         self._mutation_probability = 0.01
-        self._proc_timeout_miliseconds = 2000000
+        self._proc_timeout_seconds = 2000
         self._max_num_of_generations = 10
         self._population_size = 20
         self._hyper_volume = ConvergencyCriterion()
@@ -76,8 +76,8 @@ class RecurrentOptimizationEngineConfig(object):
             self.mutation_distribution_index = mutation_distribution_index
         if mutation_probability is not None:
             self.mutation_probability = mutation_probability
-        if proc_timeout_miliseconds is not None:
-            self.proc_timeout_miliseconds = proc_timeout_miliseconds
+        if proc_timeout_seconds is not None:
+            self.proc_timeout_seconds = proc_timeout_seconds
         if max_num_of_generations is not None:
             self.max_num_of_generations = max_num_of_generations
         if population_size is not None:
@@ -170,31 +170,31 @@ class RecurrentOptimizationEngineConfig(object):
         self._mutation_probability = mutation_probability
 
     @property
-    def proc_timeout_miliseconds(self):
-        """Gets the proc_timeout_miliseconds of this RecurrentOptimizationEngineConfig.  # noqa: E501
+    def proc_timeout_seconds(self):
+        """Gets the proc_timeout_seconds of this RecurrentOptimizationEngineConfig.  # noqa: E501
 
 
-        :return: The proc_timeout_miliseconds of this RecurrentOptimizationEngineConfig.  # noqa: E501
+        :return: The proc_timeout_seconds of this RecurrentOptimizationEngineConfig.  # noqa: E501
         :rtype: int
         """
-        return self._proc_timeout_miliseconds
+        return self._proc_timeout_seconds
 
-    @proc_timeout_miliseconds.setter
-    def proc_timeout_miliseconds(self, proc_timeout_miliseconds):
-        """Sets the proc_timeout_miliseconds of this RecurrentOptimizationEngineConfig.
+    @proc_timeout_seconds.setter
+    def proc_timeout_seconds(self, proc_timeout_seconds):
+        """Sets the proc_timeout_seconds of this RecurrentOptimizationEngineConfig.
 
 
-        :param proc_timeout_miliseconds: The proc_timeout_miliseconds of this RecurrentOptimizationEngineConfig.  # noqa: E501
+        :param proc_timeout_seconds: The proc_timeout_seconds of this RecurrentOptimizationEngineConfig.  # noqa: E501
         :type: int
         """
-        if proc_timeout_miliseconds is None:
-            raise ValueError("Invalid value for `proc_timeout_miliseconds`, must not be `None`")  # noqa: E501
-        if proc_timeout_miliseconds is not None and proc_timeout_miliseconds > 2147483647:  # noqa: E501
-            raise ValueError("Invalid value for `proc_timeout_miliseconds`, must be a value less than or equal to `2147483647`")  # noqa: E501
-        if proc_timeout_miliseconds is not None and proc_timeout_miliseconds < 0:  # noqa: E501
-            raise ValueError("Invalid value for `proc_timeout_miliseconds`, must be a value greater than or equal to `0`")  # noqa: E501
+        if proc_timeout_seconds is None:
+            raise ValueError("Invalid value for `proc_timeout_seconds`, must not be `None`")  # noqa: E501
+        if proc_timeout_seconds is not None and proc_timeout_seconds > 2147483647:  # noqa: E501
+            raise ValueError("Invalid value for `proc_timeout_seconds`, must be a value less than or equal to `2147483647`")  # noqa: E501
+        if proc_timeout_seconds is not None and proc_timeout_seconds < 0:  # noqa: E501
+            raise ValueError("Invalid value for `proc_timeout_seconds`, must be a value greater than or equal to `0`")  # noqa: E501
 
-        self._proc_timeout_miliseconds = proc_timeout_miliseconds
+        self._proc_timeout_seconds = proc_timeout_seconds
 
     @property
     def max_num_of_generations(self):

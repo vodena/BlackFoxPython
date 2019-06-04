@@ -35,6 +35,7 @@ class KerasSeriesOptimizationConfig(object):
                             and the value is json key in definition.
     """
     swagger_types = {
+        'aggregation_type': 'str',
         'window_range_configs': 'list[WindowRangeConfig]',
         'dropout': 'Range',
         'batch_size': 'int',
@@ -54,6 +55,7 @@ class KerasSeriesOptimizationConfig(object):
     }
 
     attribute_map = {
+        'aggregation_type': 'aggregationType',
         'window_range_configs': 'windowRangeConfigs',
         'dropout': 'dropout',
         'batch_size': 'batchSize',
@@ -73,6 +75,7 @@ class KerasSeriesOptimizationConfig(object):
     }
 
     def __init__(self,
+		aggregation_type='Avg',
         window_range_configs=None,
         dropout=Range(min=0, max=25),
         batch_size=32,
@@ -94,6 +97,7 @@ class KerasSeriesOptimizationConfig(object):
     ):  # noqa: E501
         """KerasSeriesOptimizationConfig - a model defined in Swagger"""  # noqa: E501
 
+        self._aggregation_type = None
         self._window_range_configs = None
         self._dropout = None
         self._batch_size = None
@@ -112,6 +116,8 @@ class KerasSeriesOptimizationConfig(object):
         self._engine_config = None
         self.discriminator = None
 
+        if aggregation_type is not None:
+            self.aggregation_type = aggregation_type
         if window_range_configs is not None:
             self.window_range_configs = window_range_configs
         if dropout is not None:
@@ -142,6 +148,33 @@ class KerasSeriesOptimizationConfig(object):
             self.random_seed = random_seed
         if engine_config is not None:
             self.engine_config = engine_config
+
+    @property
+    def aggregation_type(self):
+        """Gets the aggregation_type of this KerasSeriesOptimizationConfig.  # noqa: E501
+
+
+        :return: The aggregation_type of this KerasSeriesOptimizationConfig.  # noqa: E501
+        :rtype: str
+        """
+        return self._aggregation_type
+
+    @aggregation_type.setter
+    def aggregation_type(self, aggregation_type):
+        """Sets the aggregation_type of this KerasSeriesOptimizationConfig.
+
+
+        :param aggregation_type: The aggregation_type of this KerasSeriesOptimizationConfig.  # noqa: E501
+        :type: str
+        """
+        allowed_values = ["Avg", "Sum", "Flat"]  # noqa: E501
+        if aggregation_type not in allowed_values:
+            raise ValueError(
+                "Invalid value for `aggregation_type` ({0}), must be one of {1}"  # noqa: E501
+                .format(aggregation_type, allowed_values)
+            )
+
+        self._aggregation_type = aggregation_type
 
     @property
     def window_range_configs(self):

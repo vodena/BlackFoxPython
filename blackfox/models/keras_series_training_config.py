@@ -36,8 +36,8 @@ class KerasSeriesTrainingConfig(object):
                             and the value is json key in definition.
     """
     swagger_types = {
+        'aggregation_type': 'str',
         'window_configs': 'list[WindowConfig]',
-        'dropout': 'float',
         'batch_size': 'int',
         'dataset_id': 'str',
         'input_ranges': 'list[Range]',
@@ -51,8 +51,8 @@ class KerasSeriesTrainingConfig(object):
     }
 
     attribute_map = {
+        'aggregation_type': 'aggregationType',
         'window_configs': 'windowConfigs',
-        'dropout': 'dropout',
         'batch_size': 'batchSize',
         'dataset_id': 'datasetId',
         'input_ranges': 'inputRanges',
@@ -65,11 +65,11 @@ class KerasSeriesTrainingConfig(object):
         'random_seed': 'randomSeed'
     }
 
-    def __init__(self, window_configs=None, dropout=None, batch_size=None, dataset_id=None, input_ranges=None, output_layer=None, hidden_layer_configs=None, training_algorithm=None, max_epoch=None, cross_validation=None, validation_split=None, random_seed=None):  # noqa: E501
+    def __init__(self, aggregation_type='Avg', window_configs=None, batch_size=None, dataset_id=None, input_ranges=None, output_layer=None, hidden_layer_configs=None, training_algorithm=None, max_epoch=None, cross_validation=None, validation_split=None, random_seed=None):  # noqa: E501
         """KerasSeriesTrainingConfig - a model defined in Swagger"""  # noqa: E501
 
+        self._aggregation_type = None
         self._window_configs = None
-        self._dropout = None
         self._batch_size = None
         self._dataset_id = None
         self._input_ranges = None
@@ -82,10 +82,10 @@ class KerasSeriesTrainingConfig(object):
         self._random_seed = None
         self.discriminator = None
 
+        if aggregation_type is not None:
+            self.aggregation_type = aggregation_type
         if window_configs is not None:
             self.window_configs = window_configs
-        if dropout is not None:
-            self.dropout = dropout
         if batch_size is not None:
             self.batch_size = batch_size
         if dataset_id is not None:
@@ -104,6 +104,33 @@ class KerasSeriesTrainingConfig(object):
         self.validation_split = validation_split
         if random_seed is not None:
             self.random_seed = random_seed
+
+    @property
+    def aggregation_type(self):
+        """Gets the aggregation_type of this KerasSeriesTrainingConfig.  # noqa: E501
+
+
+        :return: The aggregation_type of this KerasSeriesTrainingConfig.  # noqa: E501
+        :rtype: str
+        """
+        return self._aggregation_type
+
+    @aggregation_type.setter
+    def aggregation_type(self, aggregation_type):
+        """Sets the aggregation_type of this KerasSeriesTrainingConfig.
+
+
+        :param aggregation_type: The aggregation_type of this KerasSeriesTrainingConfig.  # noqa: E501
+        :type: str
+        """
+        allowed_values = ["Avg", "Sum", "Flat"]  # noqa: E501
+        if aggregation_type not in allowed_values:
+            raise ValueError(
+                "Invalid value for `aggregation_type` ({0}), must be one of {1}"  # noqa: E501
+                .format(aggregation_type, allowed_values)
+            )
+
+        self._aggregation_type = aggregation_type
 
     @property
     def window_configs(self):
@@ -125,27 +152,6 @@ class KerasSeriesTrainingConfig(object):
         """
 
         self._window_configs = window_configs
-
-    @property
-    def dropout(self):
-        """Gets the dropout of this KerasSeriesTrainingConfig.  # noqa: E501
-
-
-        :return: The dropout of this KerasSeriesTrainingConfig.  # noqa: E501
-        :rtype: float
-        """
-        return self._dropout
-
-    @dropout.setter
-    def dropout(self, dropout):
-        """Sets the dropout of this KerasSeriesTrainingConfig.
-
-
-        :param dropout: The dropout of this KerasSeriesTrainingConfig.  # noqa: E501
-        :type: float
-        """
-
-        self._dropout = dropout
 
     @property
     def batch_size(self):
