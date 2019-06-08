@@ -1,12 +1,12 @@
-# WindowRangeConfig
+# InputWindowConfig
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**window** | [**Range**](Range.md) |  | [optional] 
-**shift** | [**Range**](Range.md) |  | [optional] 
-**optimize_step** | **bool** |  | [optional] 
-**aggregation_types** | **list[str]** |  | [optional] 
+**step** | **int** |  | [optional] 
+**aggregation_type** | **str** |  | [optional] 
+**window** | **int** |  | [optional] 
+**shift** | **int** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

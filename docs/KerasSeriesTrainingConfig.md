@@ -3,8 +3,9 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**aggregation_type** | **str** |  | [optional] 
-**window_configs** | [**list[WindowConfig]**](WindowConfig.md) |  | [optional] 
+**input_window_configs** | [**list[InputWindowConfig]**](InputWindowConfig.md) |  | [optional] 
+**output_window_configs** | [**list[OutputWindowConfig]**](OutputWindowConfig.md) |  | [optional] 
+**output_sample_step** | **int** |  | [optional] 
 **batch_size** | **int** |  | [optional] 
 **dataset_id** | **str** |  | [optional] 
 **input_ranges** | [**list[Range]**](Range.md) |  | [optional] 

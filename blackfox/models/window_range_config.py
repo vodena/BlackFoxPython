@@ -34,25 +34,35 @@ class WindowRangeConfig(object):
     """
     swagger_types = {
         'window': 'Range',
-        'shift': 'Range'
+        'shift': 'Range',
+        'optimize_step': 'bool',
+        'aggregation_types': 'list[str]'
     }
 
     attribute_map = {
         'window': 'window',
-        'shift': 'shift'
+        'shift': 'shift',
+        'optimize_step': 'optimizeStep',
+        'aggregation_types': 'aggregationTypes'
     }
 
-    def __init__(self, window=None, shift=None):  # noqa: E501
+    def __init__(self, window=1, shift=0, optimize_step=False, aggregation_types=['Avg', 'Sum', 'None']):  # noqa: E501
         """WindowRangeConfig - a model defined in Swagger"""  # noqa: E501
 
         self._window = None
         self._shift = None
+        self._optimize_step = None
+        self._aggregation_types = None
         self.discriminator = None
 
         if window is not None:
             self.window = window
         if shift is not None:
             self.shift = shift
+        if optimize_step is not None:
+            self.optimize_step = optimize_step
+        if aggregation_types is not None:
+            self.aggregation_types = aggregation_types
 
     @property
     def window(self):
@@ -95,6 +105,55 @@ class WindowRangeConfig(object):
         """
 
         self._shift = shift
+
+    @property
+    def optimize_step(self):
+        """Gets the optimize_step of this WindowRangeConfig.  # noqa: E501
+
+
+        :return: The optimize_step of this WindowRangeConfig.  # noqa: E501
+        :rtype: bool
+        """
+        return self._optimize_step
+
+    @optimize_step.setter
+    def optimize_step(self, optimize_step):
+        """Sets the optimize_step of this WindowRangeConfig.
+
+
+        :param optimize_step: The optimize_step of this WindowRangeConfig.  # noqa: E501
+        :type: bool
+        """
+
+        self._optimize_step = optimize_step
+
+    @property
+    def aggregation_types(self):
+        """Gets the aggregation_types of this WindowRangeConfig.  # noqa: E501
+
+
+        :return: The aggregation_types of this WindowRangeConfig.  # noqa: E501
+        :rtype: list[str]
+        """
+        return self._aggregation_types
+
+    @aggregation_types.setter
+    def aggregation_types(self, aggregation_types):
+        """Sets the aggregation_types of this WindowRangeConfig.
+
+
+        :param aggregation_types: The aggregation_types of this WindowRangeConfig.  # noqa: E501
+        :type: list[str]
+        """
+        allowed_values = ["Avg", "Sum", "None"]  # noqa: E501
+        if not set(aggregation_types).issubset(set(allowed_values)):
+            raise ValueError(
+                "Invalid values for `aggregation_types` [{0}], must be a subset of [{1}]"  # noqa: E501
+                .format(", ".join(map(str, set(aggregation_types) - set(allowed_values))),  # noqa: E501
+                        ", ".join(map(str, allowed_values)))
+            )
+
+        self._aggregation_types = aggregation_types
 
     def to_dict(self):
         """Returns the model properties as a dict"""

@@ -16,10 +16,11 @@ import re  # noqa: F401
 
 import six
 
+from blackfox.models.input_window_config import InputWindowConfig  # noqa: F401,E501
 from blackfox.models.keras_hidden_layer_config import KerasHiddenLayerConfig  # noqa: F401,E501
 from blackfox.models.keras_layer_config import KerasLayerConfig  # noqa: F401,E501
+from blackfox.models.output_window_config import OutputWindowConfig  # noqa: F401,E501
 from blackfox.models.range import Range  # noqa: F401,E501
-from blackfox.models.window_config import WindowConfig  # noqa: F401,E501
 
 
 class KerasSeriesTrainingConfig(object):
@@ -36,8 +37,9 @@ class KerasSeriesTrainingConfig(object):
                             and the value is json key in definition.
     """
     swagger_types = {
-        'aggregation_type': 'str',
-        'window_configs': 'list[WindowConfig]',
+        'input_window_configs': 'list[InputWindowConfig]',
+        'output_window_configs': 'list[OutputWindowConfig]',
+        'output_sample_step': 'int',
         'batch_size': 'int',
         'dataset_id': 'str',
         'input_ranges': 'list[Range]',
@@ -51,8 +53,9 @@ class KerasSeriesTrainingConfig(object):
     }
 
     attribute_map = {
-        'aggregation_type': 'aggregationType',
-        'window_configs': 'windowConfigs',
+        'input_window_configs': 'inputWindowConfigs',
+        'output_window_configs': 'outputWindowConfigs',
+        'output_sample_step': 'outputSampleStep',
         'batch_size': 'batchSize',
         'dataset_id': 'datasetId',
         'input_ranges': 'inputRanges',
@@ -65,11 +68,12 @@ class KerasSeriesTrainingConfig(object):
         'random_seed': 'randomSeed'
     }
 
-    def __init__(self, aggregation_type='Avg', window_configs=None, batch_size=None, dataset_id=None, input_ranges=None, output_layer=None, hidden_layer_configs=None, training_algorithm=None, max_epoch=None, cross_validation=None, validation_split=None, random_seed=None):  # noqa: E501
+    def __init__(self, input_window_configs=None, output_window_configs=None, output_sample_step=1, batch_size=32, dataset_id=None, input_ranges=None, output_layer=None, hidden_layer_configs=None, training_algorithm=None, max_epoch=3000, cross_validation=False, validation_split=0.2, random_seed=300):  # noqa: E501
         """KerasSeriesTrainingConfig - a model defined in Swagger"""  # noqa: E501
 
-        self._aggregation_type = None
-        self._window_configs = None
+        self._input_window_configs = None
+        self._output_window_configs = None
+        self._output_sample_step = None
         self._batch_size = None
         self._dataset_id = None
         self._input_ranges = None
@@ -82,10 +86,12 @@ class KerasSeriesTrainingConfig(object):
         self._random_seed = None
         self.discriminator = None
 
-        if aggregation_type is not None:
-            self.aggregation_type = aggregation_type
-        if window_configs is not None:
-            self.window_configs = window_configs
+        if input_window_configs is not None:
+            self.input_window_configs = input_window_configs
+        if output_window_configs is not None:
+            self.output_window_configs = output_window_configs
+        if output_sample_step is not None:
+            self.output_sample_step = output_sample_step
         if batch_size is not None:
             self.batch_size = batch_size
         if dataset_id is not None:
@@ -106,52 +112,67 @@ class KerasSeriesTrainingConfig(object):
             self.random_seed = random_seed
 
     @property
-    def aggregation_type(self):
-        """Gets the aggregation_type of this KerasSeriesTrainingConfig.  # noqa: E501
+    def input_window_configs(self):
+        """Gets the input_window_configs of this KerasSeriesTrainingConfig.  # noqa: E501
 
 
-        :return: The aggregation_type of this KerasSeriesTrainingConfig.  # noqa: E501
-        :rtype: str
+        :return: The input_window_configs of this KerasSeriesTrainingConfig.  # noqa: E501
+        :rtype: list[InputWindowConfig]
         """
-        return self._aggregation_type
+        return self._input_window_configs
 
-    @aggregation_type.setter
-    def aggregation_type(self, aggregation_type):
-        """Sets the aggregation_type of this KerasSeriesTrainingConfig.
+    @input_window_configs.setter
+    def input_window_configs(self, input_window_configs):
+        """Sets the input_window_configs of this KerasSeriesTrainingConfig.
 
 
-        :param aggregation_type: The aggregation_type of this KerasSeriesTrainingConfig.  # noqa: E501
-        :type: str
+        :param input_window_configs: The input_window_configs of this KerasSeriesTrainingConfig.  # noqa: E501
+        :type: list[InputWindowConfig]
         """
-        allowed_values = ["Avg", "Sum", "Flat"]  # noqa: E501
-        if aggregation_type not in allowed_values:
-            raise ValueError(
-                "Invalid value for `aggregation_type` ({0}), must be one of {1}"  # noqa: E501
-                .format(aggregation_type, allowed_values)
-            )
 
-        self._aggregation_type = aggregation_type
+        self._input_window_configs = input_window_configs
 
     @property
-    def window_configs(self):
-        """Gets the window_configs of this KerasSeriesTrainingConfig.  # noqa: E501
+    def output_window_configs(self):
+        """Gets the output_window_configs of this KerasSeriesTrainingConfig.  # noqa: E501
 
 
-        :return: The window_configs of this KerasSeriesTrainingConfig.  # noqa: E501
-        :rtype: list[WindowConfig]
+        :return: The output_window_configs of this KerasSeriesTrainingConfig.  # noqa: E501
+        :rtype: list[OutputWindowConfig]
         """
-        return self._window_configs
+        return self._output_window_configs
 
-    @window_configs.setter
-    def window_configs(self, window_configs):
-        """Sets the window_configs of this KerasSeriesTrainingConfig.
+    @output_window_configs.setter
+    def output_window_configs(self, output_window_configs):
+        """Sets the output_window_configs of this KerasSeriesTrainingConfig.
 
 
-        :param window_configs: The window_configs of this KerasSeriesTrainingConfig.  # noqa: E501
-        :type: list[WindowConfig]
+        :param output_window_configs: The output_window_configs of this KerasSeriesTrainingConfig.  # noqa: E501
+        :type: list[OutputWindowConfig]
         """
 
-        self._window_configs = window_configs
+        self._output_window_configs = output_window_configs
+
+    @property
+    def output_sample_step(self):
+        """Gets the output_sample_step of this KerasSeriesTrainingConfig.  # noqa: E501
+
+
+        :return: The output_sample_step of this KerasSeriesTrainingConfig.  # noqa: E501
+        :rtype: int
+        """
+        return self._output_sample_step
+
+    @output_sample_step.setter
+    def output_sample_step(self, output_sample_step):
+        """Sets the output_sample_step of this KerasSeriesTrainingConfig.
+
+
+        :param output_sample_step: The output_sample_step of this KerasSeriesTrainingConfig.  # noqa: E501
+        :type: int
+        """
+
+        self._output_sample_step = output_sample_step
 
     @property
     def batch_size(self):

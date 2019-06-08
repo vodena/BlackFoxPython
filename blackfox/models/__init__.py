@@ -16,6 +16,7 @@ from __future__ import absolute_import
 
 # import models into model package
 from blackfox.models.convergency_criterion import ConvergencyCriterion
+from blackfox.models.input_window_config import InputWindowConfig
 from blackfox.models.keras_hidden_layer_config import KerasHiddenLayerConfig
 from blackfox.models.keras_layer_config import KerasLayerConfig
 from blackfox.models.keras_optimization_config import KerasOptimizationConfig
@@ -29,10 +30,10 @@ from blackfox.models.keras_series_optimization_config import KerasSeriesOptimiza
 from blackfox.models.keras_series_training_config import KerasSeriesTrainingConfig
 from blackfox.models.keras_training_config import KerasTrainingConfig
 from blackfox.models.optimization_engine_config import OptimizationEngineConfig
+from blackfox.models.output_window_config import OutputWindowConfig
 from blackfox.models.prediction_array_config import PredictionArrayConfig
 from blackfox.models.prediction_file_config import PredictionFileConfig
 from blackfox.models.range import Range
 from blackfox.models.recurrent_optimization_engine_config import RecurrentOptimizationEngineConfig
 from blackfox.models.trained_network import TrainedNetwork
-from blackfox.models.window_config import WindowConfig
 from blackfox.models.window_range_config import WindowRangeConfig

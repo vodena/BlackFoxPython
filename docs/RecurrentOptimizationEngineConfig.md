@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 **crossover_probability** | **float** |  | [optional] 
 **mutation_distribution_index** | **int** |  | [optional] 
 **mutation_probability** | **float** |  | [optional] 
-**proc_timeout_miliseconds** | **int** |  | 
+**proc_timeout_seconds** | **int** |  | 
 **max_num_of_generations** | **int** |  | [optional] 
 **population_size** | **int** |  | [optional] 
 **hyper_volume** | [**ConvergencyCriterion**](ConvergencyCriterion.md) |  | [optional] 
