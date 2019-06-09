@@ -1,4 +1,4 @@
-# WindowRangeConfig
+# InputWindowRangeConfig
 
 ## Properties
 Name | Type | Description | Notes

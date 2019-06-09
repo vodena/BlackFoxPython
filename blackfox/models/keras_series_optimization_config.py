@@ -16,10 +16,10 @@ import re  # noqa: F401
 
 import six
 
+from blackfox.models.input_window_range_config import InputWindowRangeConfig  # noqa: F401,E501
 from blackfox.models.optimization_engine_config import OptimizationEngineConfig  # noqa: F401,E501
 from blackfox.models.output_window_config import OutputWindowConfig  # noqa: F401,E501
 from blackfox.models.range import Range  # noqa: F401,E501
-from blackfox.models.window_range_config import WindowRangeConfig  # noqa: F401,E501
 
 
 class KerasSeriesOptimizationConfig(object):
@@ -36,7 +36,7 @@ class KerasSeriesOptimizationConfig(object):
                             and the value is json key in definition.
     """
     swagger_types = {
-        'input_window_range_configs': 'list[WindowRangeConfig]',
+        'input_window_range_configs': 'list[InputWindowRangeConfig]',
         'output_window_configs': 'list[OutputWindowConfig]',
         'output_sample_step': 'int',
         'dropout': 'Range',
@@ -162,7 +162,7 @@ class KerasSeriesOptimizationConfig(object):
 
 
         :return: The input_window_range_configs of this KerasSeriesOptimizationConfig.  # noqa: E501
-        :rtype: list[WindowRangeConfig]
+        :rtype: list[InputWindowRangeConfig]
         """
         return self._input_window_range_configs
 
@@ -172,7 +172,7 @@ class KerasSeriesOptimizationConfig(object):
 
 
         :param input_window_range_configs: The input_window_range_configs of this KerasSeriesOptimizationConfig.  # noqa: E501
-        :type: list[WindowRangeConfig]
+        :type: list[InputWindowRangeConfig]
         """
 
         self._input_window_range_configs = input_window_range_configs
