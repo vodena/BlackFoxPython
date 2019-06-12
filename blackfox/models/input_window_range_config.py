@@ -35,23 +35,23 @@ class InputWindowRangeConfig(object):
     swagger_types = {
         'window': 'Range',
         'shift': 'Range',
-        'optimize_step': 'bool',
+        'step': 'Range',
         'aggregation_types': 'list[str]'
     }
 
     attribute_map = {
         'window': 'window',
         'shift': 'shift',
-        'optimize_step': 'optimizeStep',
+        'step': 'step',
         'aggregation_types': 'aggregationTypes'
     }
 
-    def __init__(self, window=None, shift=None, optimize_step=False, aggregation_types=['Avg', 'Sum', 'None']):  # noqa: E501
+    def __init__(self, window=None, shift=None, step=None, aggregation_types=['Avg', 'Sum', 'None']):  # noqa: E501
         """InputWindowRangeConfig - a model defined in Swagger"""  # noqa: E501
 
         self._window = None
         self._shift = None
-        self._optimize_step = None
+        self._step = None
         self._aggregation_types = None
         self.discriminator = None
 
@@ -59,8 +59,8 @@ class InputWindowRangeConfig(object):
             self.window = window
         if shift is not None:
             self.shift = shift
-        if optimize_step is not None:
-            self.optimize_step = optimize_step
+        if step is not None:
+            self.step = step
         if aggregation_types is not None:
             self.aggregation_types = aggregation_types
 
@@ -107,25 +107,25 @@ class InputWindowRangeConfig(object):
         self._shift = shift
 
     @property
-    def optimize_step(self):
-        """Gets the optimize_step of this InputWindowRangeConfig.  # noqa: E501
+    def step(self):
+        """Gets the step of this InputWindowRangeConfig.  # noqa: E501
 
 
-        :return: The optimize_step of this InputWindowRangeConfig.  # noqa: E501
-        :rtype: bool
+        :return: The step of this InputWindowRangeConfig.  # noqa: E501
+        :rtype: Range
         """
-        return self._optimize_step
+        return self._step
 
-    @optimize_step.setter
-    def optimize_step(self, optimize_step):
-        """Sets the optimize_step of this InputWindowRangeConfig.
+    @step.setter
+    def step(self, step):
+        """Sets the step of this InputWindowRangeConfig.
 
 
-        :param optimize_step: The optimize_step of this InputWindowRangeConfig.  # noqa: E501
-        :type: bool
+        :param step: The step of this InputWindowRangeConfig.  # noqa: E501
+        :type: Range
         """
 
-        self._optimize_step = optimize_step
+        self._step = step
 
     @property
     def aggregation_types(self):

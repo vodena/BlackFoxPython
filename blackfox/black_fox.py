@@ -638,10 +638,11 @@ class BlackFox:
             with NamedTemporaryFile(delete=False) as out:
                 out.write(network_path.read())
                 file_path = str(out.name)
-            id = self.sha1(file_path)
+            id = self.upload_network(file_path)
             os.remove(file_path)
         else:
-            id = self.sha1(network_path)
+            id = self.upload_network(network_path)
+        
         return self.network_api.metadata(id)
 
     def convert_to(self, network_path, network_type, network_dst_path=None, integrate_scaler=False):
