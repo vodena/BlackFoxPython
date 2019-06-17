@@ -13,9 +13,9 @@ blackfox_url = 'http://localhost:50476/'
 bf = BlackFox(blackfox_url)
 
 input_wrc = [
-    InputWindowRangeConfig(window=Range(1, 10), shift=Range(0, 2), optimize_step=True),
+    InputWindowRangeConfig(window=Range(1, 10), shift=Range(0, 2), step=Range(1, 1)),
     InputWindowRangeConfig(window=Range(1, 10), shift=Range(0, 2)),
-    InputWindowRangeConfig(window=Range(1, 10), shift=Range(0, 2), optimize_step=True),
+    InputWindowRangeConfig(window=Range(1, 10), shift=Range(0, 2), step=Range(1, 1)),
     InputWindowRangeConfig(window=Range(1, 10), shift=Range(0, 2))
 ]
 
