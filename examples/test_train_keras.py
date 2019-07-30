@@ -47,7 +47,6 @@ hidden_layer_configs = [
 ]
 
 config = KerasTrainingConfig(
-    dropout=1,
     input_ranges=input_ranges,
     output_layer=output_layer,
     hidden_layer_configs=hidden_layer_configs,

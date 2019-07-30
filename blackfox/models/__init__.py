@@ -16,6 +16,7 @@ from __future__ import absolute_import
 
 # import models into model package
 from blackfox.models.convergency_criterion import ConvergencyCriterion
+from blackfox.models.input_config import InputConfig
 from blackfox.models.input_window_config import InputWindowConfig
 from blackfox.models.input_window_range_config import InputWindowRangeConfig
 from blackfox.models.keras_hidden_layer_config import KerasHiddenLayerConfig

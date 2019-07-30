@@ -1,7 +1,5 @@
 from blackfox import BlackFox
-from blackfox import KerasOptimizationConfig
-from blackfox import OptimizationEngineConfig
-from blackfox import Range
+from blackfox import KerasOptimizationConfig, OptimizationEngineConfig, InputConfig, Range
 
 blackfox_url = 'http://localhost:50476/'
 bf = BlackFox(blackfox_url)
@@ -12,7 +10,7 @@ engine_config = OptimizationEngineConfig(
     crossover_probability=0.9,
     mutation_distribution_index=20,
     mutation_probability=0.01,
-    proc_timeout_miliseconds=200000,
+    proc_timeout_seconds=200,
     max_num_of_generations=10,
     population_size=20
 )
@@ -20,16 +18,16 @@ engine_config = OptimizationEngineConfig(
 config = KerasOptimizationConfig(
     dropout=Range(min=0, max=25),
     batch_size=10,
-    input_ranges=[
-        Range(min=0, max=1),
-        Range(min=0, max=1),
-        Range(min=0, max=1),
-        Range(min=0, max=1),
-        Range(min=0, max=1),
-        Range(min=0, max=1),
-        Range(min=0, max=1),
-        Range(min=0, max=1),
-        Range(min=0, max=1)
+    inputs=[
+        InputConfig(Range(min=0, max=1)),
+        InputConfig(Range(min=0, max=1)),
+        InputConfig(Range(min=0, max=1)),
+        InputConfig(Range(min=0, max=1)),
+        InputConfig(Range(min=0, max=1)),
+        InputConfig(Range(min=0, max=1)),
+        InputConfig(Range(min=0, max=1)),
+        InputConfig(Range(min=0, max=1)),
+        InputConfig(Range(min=0, max=1))
     ],
     output_ranges=[
         Range(min=0, max=1),

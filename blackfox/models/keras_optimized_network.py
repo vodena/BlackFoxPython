@@ -36,23 +36,26 @@ class KerasOptimizedNetwork(object):
         'id': 'str',
         'hidden_layers': 'list[KerasHiddenLayerConfig]',
         'training_algorithm': 'str',
-        'output_layer_activation_function': 'str'
+        'output_layer_activation_function': 'str',
+        'feature_selection': 'list[bool]'
     }
 
     attribute_map = {
         'id': 'id',
         'hidden_layers': 'hiddenLayers',
         'training_algorithm': 'trainingAlgorithm',
-        'output_layer_activation_function': 'outputLayerActivationFunction'
+        'output_layer_activation_function': 'outputLayerActivationFunction',
+        'feature_selection': 'featureSelection'
     }
 
-    def __init__(self, id=None, hidden_layers=None, training_algorithm=None, output_layer_activation_function=None):  # noqa: E501
+    def __init__(self, id=None, hidden_layers=None, training_algorithm=None, output_layer_activation_function=None, feature_selection=None):  # noqa: E501
         """KerasOptimizedNetwork - a model defined in Swagger"""  # noqa: E501
 
         self._id = None
         self._hidden_layers = None
         self._training_algorithm = None
         self._output_layer_activation_function = None
+        self._feature_selection = None
         self.discriminator = None
 
         if id is not None:
@@ -63,6 +66,8 @@ class KerasOptimizedNetwork(object):
             self.training_algorithm = training_algorithm
         if output_layer_activation_function is not None:
             self.output_layer_activation_function = output_layer_activation_function
+        if feature_selection is not None:
+            self.feature_selection = feature_selection
 
     @property
     def id(self):
@@ -159,6 +164,27 @@ class KerasOptimizedNetwork(object):
             )
 
         self._output_layer_activation_function = output_layer_activation_function
+
+    @property
+    def feature_selection(self):
+        """Gets the feature_selection of this KerasOptimizedNetwork.  # noqa: E501
+
+
+        :return: The feature_selection of this KerasOptimizedNetwork.  # noqa: E501
+        :rtype: list[bool]
+        """
+        return self._feature_selection
+
+    @feature_selection.setter
+    def feature_selection(self, feature_selection):
+        """Sets the feature_selection of this KerasOptimizedNetwork.
+
+
+        :param feature_selection: The feature_selection of this KerasOptimizedNetwork.  # noqa: E501
+        :type: list[bool]
+        """
+
+        self._feature_selection = feature_selection
 
     def to_dict(self):
         """Returns the model properties as a dict"""

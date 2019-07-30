@@ -64,9 +64,9 @@ class OptimizationEngineConfig(object):
         self._crossover_probability = 0.9
         self._mutation_distribution_index = 20
         self._mutation_probability = 0.01
-        self._proc_timeout_seconds = 200
-        self._max_num_of_generations = 10
-        self._population_size = 20
+        self._proc_timeout_seconds = 10800  # 3h
+        self._max_num_of_generations = 20
+        self._population_size = 50
         self._hyper_volume = ConvergencyCriterion()
         self.discriminator = None
 
@@ -80,6 +80,10 @@ class OptimizationEngineConfig(object):
             self.mutation_distribution_index = mutation_distribution_index
         if mutation_probability is not None:
             self.mutation_probability = mutation_probability
+        elif optimization_algorithm == "VidnerovaNeruda":
+            self.mutation_probability = 0.2
+        else:
+            self.mutation_probability = 0.01
         if proc_timeout_seconds is not None:
             self.proc_timeout_seconds = proc_timeout_seconds
         if max_num_of_generations is not None:

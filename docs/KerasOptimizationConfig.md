@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 **dropout** | [**Range**](Range.md) |  | [optional] 
 **batch_size** | **int** |  | [optional] 
 **dataset_id** | **str** |  | [optional] 
-**input_ranges** | [**list[Range]**](Range.md) |  | [optional] 
+**inputs** | [**list[InputConfig]**](InputConfig.md) |  | [optional] 
 **output_ranges** | [**list[Range]**](Range.md) |  | [optional] 
 **problem_type** | **str** |  | [optional] 
 **hidden_layer_count_range** | [**Range**](Range.md) |  | [optional] 

@@ -28,6 +28,7 @@ from blackfox.api_client import ApiClient
 from blackfox.configuration import Configuration
 # import models into sdk package
 from blackfox.models.convergency_criterion import ConvergencyCriterion
+from blackfox.models.input_config import InputConfig
 from blackfox.models.input_window_config import InputWindowConfig
 from blackfox.models.input_window_range_config import InputWindowRangeConfig
 from blackfox.models.keras_hidden_layer_config import KerasHiddenLayerConfig

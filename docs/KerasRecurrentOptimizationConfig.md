@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 **recurrent_dropout** | [**Range**](Range.md) |  | [optional] 
 **recurrent_output_count** | **int** |  | [optional] 
 **dataset_id** | **str** |  | [optional] 
-**input_ranges** | [**list[Range]**](Range.md) |  | [optional] 
+**inputs** | [**list[InputConfig]**](InputConfig.md) |  | [optional] 
 **output_ranges** | [**list[Range]**](Range.md) |  | [optional] 
 **hidden_layer_count_range** | [**Range**](Range.md) |  | [optional] 
 **neurons_per_layer** | [**Range**](Range.md) |  | [optional] 

@@ -16,6 +16,7 @@ import re  # noqa: F401
 
 import six
 
+from blackfox.models.input_config import InputConfig  # noqa: F401,E501
 from blackfox.models.input_window_range_config import InputWindowRangeConfig  # noqa: F401,E501
 from blackfox.models.optimization_engine_config import OptimizationEngineConfig  # noqa: F401,E501
 from blackfox.models.output_window_config import OutputWindowConfig  # noqa: F401,E501
@@ -42,7 +43,7 @@ class KerasSeriesOptimizationConfig(object):
         'dropout': 'Range',
         'batch_size': 'int',
         'dataset_id': 'str',
-        'input_ranges': 'list[Range]',
+        'inputs': 'list[InputConfig]',
         'output_ranges': 'list[Range]',
         'problem_type': 'str',
         'hidden_layer_count_range': 'Range',
@@ -63,7 +64,7 @@ class KerasSeriesOptimizationConfig(object):
         'dropout': 'dropout',
         'batch_size': 'batchSize',
         'dataset_id': 'datasetId',
-        'input_ranges': 'inputRanges',
+        'inputs': 'inputs',
         'output_ranges': 'outputRanges',
         'problem_type': 'problemType',
         'hidden_layer_count_range': 'hiddenLayerCountRange',
@@ -84,7 +85,7 @@ class KerasSeriesOptimizationConfig(object):
     dropout=Range(min=0, max=25),
     batch_size=32,
     dataset_id=None,
-    input_ranges=None,
+    inputs=None,
     output_ranges=None,
     problem_type='Regression',
     hidden_layer_count_range=Range(min=1, max=15),
@@ -107,7 +108,7 @@ class KerasSeriesOptimizationConfig(object):
         self._dropout = None
         self._batch_size = None
         self._dataset_id = None
-        self._input_ranges = None
+        self._inputs = None
         self._output_ranges = None
         self._problem_type = None
         self._hidden_layer_count_range = None
@@ -133,8 +134,8 @@ class KerasSeriesOptimizationConfig(object):
             self.batch_size = batch_size
         if dataset_id is not None:
             self.dataset_id = dataset_id
-        if input_ranges is not None:
-            self.input_ranges = input_ranges
+        if inputs is not None:
+            self.inputs = inputs
         if output_ranges is not None:
             self.output_ranges = output_ranges
         if problem_type is not None:
@@ -283,25 +284,25 @@ class KerasSeriesOptimizationConfig(object):
         self._dataset_id = dataset_id
 
     @property
-    def input_ranges(self):
-        """Gets the input_ranges of this KerasSeriesOptimizationConfig.  # noqa: E501
+    def inputs(self):
+        """Gets the inputs of this KerasSeriesOptimizationConfig.  # noqa: E501
 
 
-        :return: The input_ranges of this KerasSeriesOptimizationConfig.  # noqa: E501
-        :rtype: list[Range]
+        :return: The inputs of this KerasSeriesOptimizationConfig.  # noqa: E501
+        :rtype: list[InputConfig]
         """
-        return self._input_ranges
+        return self._inputs
 
-    @input_ranges.setter
-    def input_ranges(self, input_ranges):
-        """Sets the input_ranges of this KerasSeriesOptimizationConfig.
+    @inputs.setter
+    def inputs(self, inputs):
+        """Sets the inputs of this KerasSeriesOptimizationConfig.
 
 
-        :param input_ranges: The input_ranges of this KerasSeriesOptimizationConfig.  # noqa: E501
-        :type: list[Range]
+        :param inputs: The inputs of this KerasSeriesOptimizationConfig.  # noqa: E501
+        :type: list[InputConfig]
         """
 
-        self._input_ranges = input_ranges
+        self._inputs = inputs
 
     @property
     def output_ranges(self):

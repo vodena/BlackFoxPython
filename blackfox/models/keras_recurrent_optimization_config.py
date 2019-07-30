@@ -16,6 +16,7 @@ import re  # noqa: F401
 
 import six
 
+from blackfox.models.input_config import InputConfig  # noqa: F401,E501
 from blackfox.models.range import Range  # noqa: F401,E501
 from blackfox.models.recurrent_optimization_engine_config import RecurrentOptimizationEngineConfig  # noqa: F401,E501
 
@@ -39,7 +40,7 @@ class KerasRecurrentOptimizationConfig(object):
         'recurrent_dropout': 'Range',
         'recurrent_output_count': 'int',
         'dataset_id': 'str',
-        'input_ranges': 'list[Range]',
+        'inputs': 'list[InputConfig]',
         'output_ranges': 'list[Range]',
         'hidden_layer_count_range': 'Range',
         'neurons_per_layer': 'Range',
@@ -59,7 +60,7 @@ class KerasRecurrentOptimizationConfig(object):
         'recurrent_dropout': 'recurrentDropout',
         'recurrent_output_count': 'recurrentOutputCount',
         'dataset_id': 'datasetId',
-        'input_ranges': 'inputRanges',
+        'inputs': 'inputs',
         'output_ranges': 'outputRanges',
         'hidden_layer_count_range': 'hiddenLayerCountRange',
         'neurons_per_layer': 'neuronsPerLayer',
@@ -78,7 +79,7 @@ class KerasRecurrentOptimizationConfig(object):
         recurrent_dropout=Range(min=0, max=25),
 		recurrent_output_count=1, 
         dataset_id=None,
-        input_ranges=None, output_ranges=None,
+        inputs=None, output_ranges=None,
         hidden_layer_count_range=Range(min=1, max=5),
         neurons_per_layer=Range(min=1, max=500),
         training_algorithms=["SGD", "RMSprop", "Adagrad", "Adadelta", "Adam", "Adamax", "Nadam"],
@@ -99,7 +100,7 @@ class KerasRecurrentOptimizationConfig(object):
         self._recurrent_dropout = None
         self._recurrent_output_count = None
         self._dataset_id = None
-        self._input_ranges = None
+        self._inputs = None
         self._output_ranges = None
         self._hidden_layer_count_range = None
         self._neurons_per_layer = None
@@ -123,8 +124,8 @@ class KerasRecurrentOptimizationConfig(object):
             self.recurrent_output_count = recurrent_output_count
         if dataset_id is not None:
             self.dataset_id = dataset_id
-        if input_ranges is not None:
-            self.input_ranges = input_ranges
+        if inputs is not None:
+            self.inputs = inputs
         if output_ranges is not None:
             self.output_ranges = output_ranges
         if hidden_layer_count_range is not None:
@@ -252,25 +253,25 @@ class KerasRecurrentOptimizationConfig(object):
         self._dataset_id = dataset_id
 
     @property
-    def input_ranges(self):
-        """Gets the input_ranges of this KerasRecurrentOptimizationConfig.  # noqa: E501
+    def inputs(self):
+        """Gets the inputs of this KerasRecurrentOptimizationConfig.  # noqa: E501
 
 
-        :return: The input_ranges of this KerasRecurrentOptimizationConfig.  # noqa: E501
-        :rtype: list[Range]
+        :return: The inputs of this KerasRecurrentOptimizationConfig.  # noqa: E501
+        :rtype: list[InputConfig]
         """
-        return self._input_ranges
+        return self._inputs
 
-    @input_ranges.setter
-    def input_ranges(self, input_ranges):
-        """Sets the input_ranges of this KerasRecurrentOptimizationConfig.
+    @inputs.setter
+    def inputs(self, inputs):
+        """Sets the inputs of this KerasRecurrentOptimizationConfig.
 
 
-        :param input_ranges: The input_ranges of this KerasRecurrentOptimizationConfig.  # noqa: E501
-        :type: list[Range]
+        :param inputs: The inputs of this KerasRecurrentOptimizationConfig.  # noqa: E501
+        :type: list[InputConfig]
         """
 
-        self._input_ranges = input_ranges
+        self._inputs = inputs
 
     @property
     def output_ranges(self):

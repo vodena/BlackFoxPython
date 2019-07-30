@@ -19,6 +19,7 @@ from blackfox.api.recurrent_optimization_api import RecurrentOptimizationApi
 from blackfox.models.keras_optimization_config import KerasOptimizationConfig
 from blackfox.models.keras_recurrent_optimization_config import KerasRecurrentOptimizationConfig
 from blackfox.models.keras_series_optimization_config import KerasSeriesOptimizationConfig
+from blackfox.models.input_config import InputConfig
 from blackfox.models.range import Range
 from blackfox.validation import (validate_training,
                                  validate_optimization,
@@ -175,7 +176,7 @@ class BlackFox:
         results = self.prediction_api.post_array(config=config)
         return results
 
-    def get_ranges(self, data_set):
+    def __get_ranges(self, data_set):
         ranges = []
         for row in data_set:
             for i, d in enumerate(row):
@@ -186,6 +187,28 @@ class BlackFox:
                     r.min = min(r.min, d)
                     r.max = max(r.max, d)
         return ranges
+
+    def __fill_inputs(self, inputs, data_set):
+        if inputs is None or len(inputs) == 0:
+            inputs = []
+            for row in data_set:
+                for i, d in enumerate(row):
+                    if len(inputs) <= i or inputs[i] is None:
+                        inputs.append(InputConfig(range=Range(d, d)))
+                    else:
+                        r = inputs[i].range
+                        r.min = min(r.min, d)
+                        r.max = max(r.max, d)
+        else:
+            for j in range(len(inputs)):
+                inp = inputs[j]
+                if inp.range is None:
+                    inp.range = Range(float("inf"), float("-inf"))
+                    for row in data_set:
+                        d = row[j]
+                        inp.range.min = min(inp.range.min, d)
+                        inp.range.max = max(inp.range.max, d)
+        return inputs
 
     def optimize_keras_sync(
         self,
@@ -295,15 +318,14 @@ class BlackFox:
                 output_set = output_set.tolist()
             tmp_file = NamedTemporaryFile(delete=False)
             # input ranges
-            if config.input_ranges is None:
-                config.input_ranges = self.get_ranges(input_set)
+            config.inputs = self.__fill_inputs(config.inputs, input_set)
             # output ranges
             if config.output_ranges is None:
-                config.output_ranges = self.get_ranges(output_set)
+                config.output_ranges = self.__get_ranges(output_set)
             data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
                                 (','.join(map(str, y))), input_set, output_set))
 
-            column_count = len(config.input_ranges) + len(config.output_ranges)
+            column_count = len(config.inputs) + len(config.output_ranges)
             column_range = range(0, column_count)
             headers = map(lambda i: 'column_'+str(i), column_range)
             data_set.insert(0, ','.join(headers))
@@ -315,8 +337,8 @@ class BlackFox:
             data_set_path = str(tmp_file.name)
 
         if data_set_path is not None:
-            if config.input_ranges is None:
-                self.log(log_file, "config.input_ranges is None\n")
+            if config.inputs is None:
+                self.log(log_file, "config.inputs is None\n")
                 return None, None, None
             if config.output_ranges is None:
                 self.log(log_file, "config.output_ranges is None\n")
@@ -334,7 +356,7 @@ class BlackFox:
         self.log(log_file, "Starting...\n")
         if is_series:
             id = self.optimization_api.post_series_async(config=config)
-        else:    
+        else:
             id = self.optimization_api.post_async(config=config)
 
         def signal_handler(sig, frame):
@@ -520,15 +542,14 @@ class BlackFox:
                 output_set = output_set.tolist()
             tmp_file = NamedTemporaryFile(delete=False)
             # input ranges
-            if config.input_ranges is None:
-                config.input_ranges = self.get_ranges(input_set)
+            config.inputs = self.__fill_inputs(config.inputs, input_set)
             # output ranges
             if config.output_ranges is None:
-                config.output_ranges = self.get_ranges(output_set)
+                config.output_ranges = self.__get_ranges(output_set)
             data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
                                 (','.join(map(str, y))), input_set, output_set))
 
-            column_count = len(config.input_ranges) + len(config.output_ranges)
+            column_count = len(config.inputs) + len(config.output_ranges)
             column_range = range(0, column_count)
             headers = map(lambda i: 'column_'+str(i), column_range)
             data_set.insert(0, ','.join(headers))
@@ -540,8 +561,8 @@ class BlackFox:
             data_set_path = str(tmp_file.name)
 
         if data_set_path is not None:
-            if config.input_ranges is None:
-                self.log(log_file, "config.input_ranges is None\n")
+            if config.inputs is None:
+                self.log(log_file, "config.inputs is None\n")
                 return None, None, None
             if config.output_ranges is None:
                 self.log(log_file, "config.output_ranges is None\n")
@@ -556,7 +577,7 @@ class BlackFox:
         if tmp_file is not None:
             os.remove(tmp_file.name)
 
-        self.log(log_file, "Starting...\n")   
+        self.log(log_file, "Starting...\n")
         id = self.recurrent_optimization_api.post(config=config)
 
         def signal_handler(sig, frame):
@@ -625,7 +646,6 @@ class BlackFox:
 
         return None, None, None
 
-
     def get_metadata(self, network_path):
         """
         Get network metadata.
@@ -642,7 +662,7 @@ class BlackFox:
             os.remove(file_path)
         else:
             id = self.upload_network(network_path)
-        
+
         return self.network_api.metadata(id)
 
     def convert_to(self, network_path, network_type, network_dst_path=None, integrate_scaler=False):
