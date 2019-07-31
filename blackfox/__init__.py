@@ -52,3 +52,4 @@ from blackfox.models.recurrent_optimization_engine_config import RecurrentOptimi
 from blackfox.models.trained_network import TrainedNetwork
 from blackfox.black_fox import BlackFox
 from blackfox.log_writer import LogWriter
+from blackfox.csv_log_writer import CsvLogWriter

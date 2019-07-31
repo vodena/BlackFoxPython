@@ -375,7 +375,7 @@ class BlackFox:
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            print('stopped', status.state)
+            print('Optimization state: ', status.state)
             if status.network is not None and status.network.id is not None:
                 self.__log_string(log_writer,
                          "Downloading network " +
@@ -596,7 +596,7 @@ class BlackFox:
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            print('Stopped', status.state)
+            print('Optimization state: ', status.state)
             if status.network is not None and status.network.id is not None:
                 self.__log_string(log_writer,
                          "Downloading network " +
