@@ -3,7 +3,6 @@ from io import BytesIO
 import os
 import sys
 import signal
-from datetime import datetime
 import time
 import shutil
 import hashlib
@@ -17,6 +16,7 @@ from blackfox.api.training_api import TrainingApi
 from blackfox.api.optimization_api import OptimizationApi
 from blackfox.api.recurrent_optimization_api import RecurrentOptimizationApi
 from blackfox.models.keras_optimization_config import KerasOptimizationConfig
+from blackfox.log_writer import LogWriter
 from blackfox.models.keras_recurrent_optimization_config import KerasRecurrentOptimizationConfig
 from blackfox.models.keras_series_optimization_config import KerasSeriesOptimizationConfig
 from blackfox.models.input_config import InputConfig
@@ -44,13 +44,13 @@ class BlackFox:
         self.optimization_api = OptimizationApi(self.client)
         self.recurrent_optimization_api = RecurrentOptimizationApi(self.client)
 
-    def log(self, stream, msg):
-        if isinstance(stream, str):
-            with open(stream, mode='a', encoding='utf-8', buffering=1) as f:
-                f.write(msg)
-        else:
-            stream.write(msg)
-            stream.flush()
+    def __log_string(self, log_writer, msg):
+        if log_writer is not None:
+            log_writer.write_string(msg)
+
+    def __log_status(self, log_writer, id, status):
+        if log_writer is not None:
+            log_writer.write_status(id, status)
 
     def upload_data_set(self, path):
         id = self.sha1(path)
@@ -220,7 +220,7 @@ class BlackFox:
         config=KerasOptimizationConfig(),
         network_path=None,
         status_interval=5,
-        log_file=sys.stdout
+        log_writer=LogWriter()
     ):
         """
         Find optimal network for given problem.
@@ -232,12 +232,12 @@ class BlackFox:
         :param str data_set_path:
         :param str network_path:
         :param int status_interval:
-        :param str log_file:
+        :param str log_writer:
         :return: (BytesIO, KerasOptimizedNetwork): byte array from network model, optimized network info
                 If data_set_path is not None upload data set,
                 and sets config.dataset_id to new id.
                 If network_path is not None download network to given file.
-                If log_file is not None write to log file 
+                If log_writer is not None write to log file 
                 every 5 seconds(status_interval)
         """
         return self.__optimize_keras_sync(
@@ -250,7 +250,7 @@ class BlackFox:
             config=config,
             network_path=network_path,
             status_interval=status_interval,
-            log_file=log_file
+            log_writer=log_writer
         )
 
     def optimize_series_keras_sync(
@@ -263,7 +263,7 @@ class BlackFox:
         config=KerasSeriesOptimizationConfig(),
         network_path=None,
         status_interval=5,
-        log_file=sys.stdout
+        log_writer=LogWriter()
     ):
         """
         Find optimal network for given problem.
@@ -275,12 +275,12 @@ class BlackFox:
         :param str data_set_path:
         :param str network_path:
         :param int status_interval:
-        :param str log_file:
+        :param str log_writer:
         :return: (BytesIO, KerasOptimizedNetwork, dict): byte array from network model, optimized network info, metadata
                 If data_set_path is not None upload data set,
                 and sets config.dataset_id to new id.
                 If network_path is not None download network to given file.
-                If log_file is not None write to log file 
+                If log_writer is not None write to log file 
                 every 5 seconds(status_interval)
         """
         return self.__optimize_keras_sync(
@@ -293,7 +293,7 @@ class BlackFox:
             config=config,
             network_path=network_path,
             status_interval=status_interval,
-            log_file=log_file
+            log_writer=log_writer
         )
 
     def __optimize_keras_sync(
@@ -307,7 +307,7 @@ class BlackFox:
         config=None,
         network_path=None,
         status_interval=5,
-        log_file=sys.stdout
+        log_writer=LogWriter()
     ):
         print('Use CTRL + C to stop optimization')
         tmp_file = None
@@ -333,35 +333,34 @@ class BlackFox:
             tmp_file.write(csv.encode("utf-8"))
             tmp_file.close()
             if data_set_path is not None:
-                self.log(log_file, 'Ignoring data_set_path\n')
+                self.__log_string(log_writer, 'Ignoring data_set_path')
             data_set_path = str(tmp_file.name)
 
         if data_set_path is not None:
             if config.inputs is None:
-                self.log(log_file, "config.inputs is None\n")
+                self.__log_string(log_writer, "config.inputs is None")
                 return None, None, None
             if config.output_ranges is None:
-                self.log(log_file, "config.output_ranges is None\n")
+                self.__log_string(log_writer, "config.output_ranges is None")
                 return None, None, None
             if tmp_file is not None:
-                self.log(log_file, "Uploading data set\n")
+                self.__log_string(log_writer, "Uploading data set")
             else:
-                self.log(log_file, "Uploading data set " +
-                         data_set_path + "\n")
+                self.__log_string(log_writer, "Uploading data set " + data_set_path)
             config.dataset_id = self.upload_data_set(data_set_path)
 
         if tmp_file is not None:
             os.remove(tmp_file.name)
 
-        self.log(log_file, "Starting...\n")
+        self.__log_string(log_writer, "Starting...")
         if is_series:
             id = self.optimization_api.post_series_async(config=config)
         else:
             id = self.optimization_api.post_async(config=config)
 
         def signal_handler(sig, frame):
-            self.log(log_file, "Stopping optimization : "+id+"\n")
-            if log_file is not sys.stdout:
+            self.__log_string(log_writer, "Stopping optimization : "+id)
+            if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
                 print("Stopping optimization : "+id)
             self.stop_optimization_keras(id)
 
@@ -372,34 +371,15 @@ class BlackFox:
         while running:
             status = self.optimization_api.get_status_async(id)
             running = (status.state == 'Active')
-            if log_file is not None:
-                self.log(
-                    log_file,
-                    ("%s -> %s, "
-                     "Generation: %s/%s, "
-                     "Validation set error: %f, "
-                     "Training set error: %f, "
-                     "Epoch: %d, "
-                     "Optimization Id: %s\n") %
-                    (
-                        datetime.now(),
-                        status.state,
-                        status.generation,
-                        status.total_generations,
-                        status.validation_set_error,
-                        status.training_set_error,
-                        status.epoch,
-                        id
-                    )
-                )
+            self.__log_status(log_writer, id, status)
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
             print('stopped', status.state)
             if status.network is not None and status.network.id is not None:
-                self.log(log_file,
+                self.__log_string(log_writer,
                          "Downloading network " +
-                         status.network.id + "\n")
+                         status.network.id)
                 network_stream = self.download_network(
                     status.network.id,
                     integrate_scaler=integrate_scaler,
@@ -407,9 +387,9 @@ class BlackFox:
                 )
                 data = network_stream.read()
                 if network_path is not None:
-                    self.log(log_file,
+                    self.__log_string(log_writer,
                              "Saving network " +
-                             status.network.id + " to " + network_path + "\n")
+                             status.network.id + " to " + network_path)
                     with open(network_path, 'wb') as f:
                         f.write(data)
                 byte_io = BytesIO(data)
@@ -419,9 +399,9 @@ class BlackFox:
                 return None, None, None
 
         elif status.state == 'Error':
-            self.log(log_file, "Optimization error\n")
+            self.__log_string(log_writer, "Optimization error")
         else:
-            self.log(log_file, "Unknown error\n")
+            self.__log_string(log_writer, "Unknown error")
 
         return None, None, None
 
@@ -513,7 +493,7 @@ class BlackFox:
         config=None,
         network_path=None,
         status_interval=5,
-        log_file=sys.stdout
+        log_writer=LogWriter()
     ):
         """
         Find optimal network for given problem.
@@ -525,12 +505,12 @@ class BlackFox:
         :param str data_set_path:
         :param str network_path:
         :param int status_interval:
-        :param str log_file:
+        :param str log_writer:
         :return: (BytesIO, KerasRecurrentOptimizedNetwork, dict): byte array from network model, optimized network info, metadata
                 If data_set_path is not None upload data set,
                 and sets config.dataset_id to new id.
                 If network_path is not None download network to given file.
-                If log_file is not None write to log file 
+                If log_writer is not None write to log file 
                 every 5 seconds(status_interval)
         """
         print('Use CTRL + C to stop optimization')
@@ -557,32 +537,32 @@ class BlackFox:
             tmp_file.write(csv.encode("utf-8"))
             tmp_file.close()
             if data_set_path is not None:
-                self.log(log_file, 'Ignoring data_set_path\n')
+                self.__log_string(log_writer, 'Ignoring data_set_path')
             data_set_path = str(tmp_file.name)
 
         if data_set_path is not None:
             if config.inputs is None:
-                self.log(log_file, "config.inputs is None\n")
+                self.__log_string(log_writer, "config.inputs is None")
                 return None, None, None
             if config.output_ranges is None:
-                self.log(log_file, "config.output_ranges is None\n")
+                self.__log_string(log_writer, "config.output_ranges is None")
                 return None, None, None
             if tmp_file is not None:
-                self.log(log_file, "Uploading data set\n")
+                self.__log_string(log_writer, "Uploading data set")
             else:
-                self.log(log_file, "Uploading data set " +
-                         data_set_path + "\n")
+                self.__log_string(log_writer, "Uploading data set " +
+                         data_set_path)
             config.dataset_id = self.upload_data_set(data_set_path)
 
         if tmp_file is not None:
             os.remove(tmp_file.name)
 
-        self.log(log_file, "Starting...\n")
+        self.__log_string(log_writer, "Starting...")
         id = self.recurrent_optimization_api.post(config=config)
 
         def signal_handler(sig, frame):
-            self.log(log_file, "Stopping optimization : "+id+"\n")
-            if log_file is not sys.stdout:
+            self.__log_string(log_writer, "Stopping optimization : "+id)
+            if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
                 print("Stopping optimization : "+id)
             self.stop_optimization_keras(id)
 
@@ -593,15 +573,15 @@ class BlackFox:
         while running:
             status = self.recurrent_optimization_api.get_status(id)
             running = (status.state == 'Active')
-            if log_file is not None:
-                self.log(
-                    log_file,
+            if log_writer is not None:
+                self.__log_string(
+                    log_writer,
                     ("%s -> %s, "
                      "Generation: %s/%s, "
                      "Validation set error: %f, "
                      "Training set error: %f, "
                      "Epoch: %d, "
-                     "Optimization Id: %s\n") %
+                     "Optimization Id: %s") %
                     (
                         datetime.now(),
                         status.state,
@@ -616,11 +596,11 @@ class BlackFox:
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            print('stopped', status.state)
+            print('Stopped', status.state)
             if status.network is not None and status.network.id is not None:
-                self.log(log_file,
+                self.__log_string(log_writer,
                          "Downloading network " +
-                         status.network.id + "\n")
+                         status.network.id)
                 network_stream = self.download_network(
                     status.network.id,
                     integrate_scaler=integrate_scaler,
@@ -628,9 +608,9 @@ class BlackFox:
                 )
                 data = network_stream.read()
                 if network_path is not None:
-                    self.log(log_file,
+                    self.__log_string(log_writer,
                              "Saving network " +
-                             status.network.id + " to " + network_path + "\n")
+                             status.network.id + " to " + network_path)
                     with open(network_path, 'wb') as f:
                         f.write(data)
                 byte_io = BytesIO(data)
@@ -640,9 +620,9 @@ class BlackFox:
                 return None, None, None
 
         elif status.state == 'Error':
-            self.log(log_file, "Optimization error\n")
+            self.__log_string(log_writer, "Optimization error")
         else:
-            self.log(log_file, "Unknown error\n")
+            self.__log_string(log_writer, "Unknown error")
 
         return None, None, None
 
