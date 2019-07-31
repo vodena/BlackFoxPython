@@ -56,10 +56,10 @@ class OptimizationEngineConfig(object):
         'hyper_volume': 'hyperVolume'
     }
 
-    def __init__(self, optimization_algorithm=None, crossover_distribution_index=None, crossover_probability=None, mutation_distribution_index=None, mutation_probability=None, proc_timeout_seconds=None, max_num_of_generations=None, population_size=None, hyper_volume=None):  # noqa: E501
+    def __init__(self, optimization_algorithm='VidnerovaNeruda', crossover_distribution_index=None, crossover_probability=None, mutation_distribution_index=None, mutation_probability=None, proc_timeout_seconds=None, max_num_of_generations=None, population_size=None, hyper_volume=None):  # noqa: E501
         """OptimizationEngineConfig - a model defined in Swagger"""  # noqa: E501
 
-        self._optimization_algorithm = "SimpleGA"
+        self._optimization_algorithm = "VidnerovaNeruda"
         self._crossover_distribution_index = 20
         self._crossover_probability = 0.9
         self._mutation_distribution_index = 20
