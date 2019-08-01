@@ -36,8 +36,7 @@ config = KerasOptimizationConfig(
         InputConfig(is_optional=True),
         InputConfig(Range(min=0, max=1)),
         InputConfig()
-    ],
-    engine_config=OptimizationEngineConfig(optimization_algorithm="VidnerovaNeruda")
+    ]
 )
 # Use CTRL + C to stop optimization
 network_stream = bf.optimize_keras_sync(
