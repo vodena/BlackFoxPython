@@ -1,5 +1,4 @@
-from blackfox import BlackFox
-from blackfox import KerasOptimizationConfig
+from blackfox import BlackFox, KerasOptimizationConfig
 import h5py
 from keras.models import load_model
 import numpy as np

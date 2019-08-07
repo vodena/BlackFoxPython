@@ -1,0 +1,34 @@
+.. BlackFox documentation master file, created by
+   sphinx-quickstart on Tue Aug  6 12:44:12 2019.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Black Fox documentation
+=======================
+
+**The goal of Black Fox is to dramatically simplify
+the process of building deployment-ready predictive models.**
+
+Black Fox is a cloud-based “one click data-in model-out” 
+**robust artificial intelligence software solution** for automated 
+generation of the most adequate predictive model for any given dataset. 
+It optimizes all parameters and hyperparameters of 
+neural networks by genetic algorithm.
+Optimization targets include number of hidden layers, 
+number of neurons per layer, 
+activation functions, dropout, learning algorithms, etc.
+During an evolutionary process, Black Fox automatically performs adjustments of NN architecture according to the present dataset.
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
