@@ -29,7 +29,7 @@ Installation
 ~~~~~~~~~~~~
 To install Black Fox use `pip <https://pip.pypa.io/en/stable/quickstart/>`_ or `pipenv <https://docs.pipenv.org/en/latest/>`_:
 
-.. code-block:: console
+.. code-block:: PowerShell
 
     $ pip install -U blackfox
 
