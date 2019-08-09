@@ -14,7 +14,7 @@ def exchandler(type, value, traceback):
 
 
 def validate_ranges(config):
-    for r in config.input_ranges:
+    for r in list(map(lambda x: x.range, config.inputs)):
         if r.min > r.max:
             with except_handler(exchandler):
                 raise ValueError(
@@ -66,7 +66,7 @@ def validate_test_predict_array_keras(config):
 
 
 def validate_optimize_keras(config):
-    if config.engine_config.proc_timeout_miliseconds < 0:
+    if config.engine_config.proc_timeout_seconds < 0:
         with except_handler(exchandler):
             raise ValueError("Values in seconds must be positive.")
     if(config.dropout.min > config.dropout.max):

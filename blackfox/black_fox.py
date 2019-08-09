@@ -390,7 +390,7 @@ class BlackFox:
 
         return None, None, None
 
-    #@validate_optimization
+    @validate_optimization
     def optimize_keras(
         self,
         config = KerasOptimizationConfig(),
@@ -447,7 +447,7 @@ class BlackFox:
         status = self.optimization_api.get_status(id)
         if (
             (status.state == 'Finished' or status.state == 'Stopped')
-            and (network_path is not None)
+            and (network_path is not None and status.network is not None and status.network.id is not None)
         ):
             self.download_network(
                 status.network.id,

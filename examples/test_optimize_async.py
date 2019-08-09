@@ -3,7 +3,7 @@ from blackfox import KerasOptimizationConfig, InputConfig, Range
 import time
 from datetime import datetime
 
-blackfox_url = 'http://localhost:50476/'
+blackfox_url = 'http://147.91.204.14:32702'
 bf = BlackFox(blackfox_url)
 
 config = KerasOptimizationConfig(
@@ -41,7 +41,7 @@ while running:
            "Validation set error: %f, "
            "Training set error: %f, "
            "Epoch: %d, "
-           "Optimization Id: %s\n") % (
+           "Optimization Id: %s") % (
         datetime.now(),
         status.state,
         status.generation,
