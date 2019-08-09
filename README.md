@@ -55,20 +55,6 @@ import blackfox
 
 Please follow the [installation procedure](#installation--usage) and then run examples
 
-## Documentation For Models
-
- - [KerasHiddenLayerConfig](docs/KerasHiddenLayerConfig.md)
- - [KerasLayerConfig](docs/KerasLayerConfig.md)
- - [KerasOptimizationConfig](docs/KerasOptimizationConfig.md)
- - [KerasOptimizationStatus](docs/KerasOptimizationStatus.md)
- - [KerasOptimizedNetwork](docs/KerasOptimizedNetwork.md)
- - [KerasTrainingConfig](docs/KerasTrainingConfig.md)
- - [OptimizationEngineConfig](docs/OptimizationEngineConfig.md)
- - [PredictionArrayConfig](docs/PredictionArrayConfig.md)
- - [PredictionFileConfig](docs/PredictionFileConfig.md)
- - [Range](docs/Range.md)
- - [TrainedNetwork](docs/TrainedNetwork.md)
-
 
 
 

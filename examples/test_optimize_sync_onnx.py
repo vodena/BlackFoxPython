@@ -1,5 +1,4 @@
-from blackfox import BlackFox
-from blackfox import KerasOptimizationConfig
+from blackfox import BlackFox, KerasOptimizationConfig
 import csv
 
 blackfox_url = 'http://localhost:50476/'

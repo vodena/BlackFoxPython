@@ -1,8 +1,4 @@
-from blackfox import BlackFox
-from blackfox import Range
-from blackfox import KerasLayerConfig
-from blackfox import KerasTrainingConfig
-from blackfox import KerasHiddenLayerConfig
+from blackfox import BlackFox, Range, KerasLayerConfig, KerasTrainingConfig, KerasHiddenLayerConfig
 
 blackfox_url = 'http://localhost:50476/'
 bf = BlackFox(blackfox_url)

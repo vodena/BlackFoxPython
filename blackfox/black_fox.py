@@ -6,21 +6,8 @@ import signal
 import time
 import shutil
 import hashlib
-from blackfox.rest import ApiException
-from blackfox.configuration import Configuration
-from blackfox.api_client import ApiClient
-from blackfox.api.data_set_api import DataSetApi
-from blackfox.api.network_api import NetworkApi
-from blackfox.api.prediction_api import PredictionApi
-from blackfox.api.training_api import TrainingApi
-from blackfox.api.optimization_api import OptimizationApi
-from blackfox.api.recurrent_optimization_api import RecurrentOptimizationApi
-from blackfox.models.keras_optimization_config import KerasOptimizationConfig
+from blackfox import ApiException, Configuration, ApiClient, DataSetApi, NetworkApi, PredictionApi, TrainingApi, OptimizationApi, RecurrentOptimizationApi, KerasOptimizationConfig, KerasRecurrentOptimizationConfig, KerasSeriesOptimizationConfig, InputConfig, Range
 from blackfox.log_writer import LogWriter
-from blackfox.models.keras_recurrent_optimization_config import KerasRecurrentOptimizationConfig
-from blackfox.models.keras_series_optimization_config import KerasSeriesOptimizationConfig
-from blackfox.models.input_config import InputConfig
-from blackfox.models.range import Range
 from blackfox.validation import (validate_training,
                                  validate_optimization,
                                  validate_prediction_file,
@@ -31,6 +18,15 @@ BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
 
 class BlackFox:
+
+    """BlackFox provides methods for neural network parameter optimization.
+
+    Parameters
+    ----------
+    host : str
+        Web API url
+
+    """
 
     def __init__(self, host="http://localhost:50476/"):
         self.host = host
@@ -98,18 +94,6 @@ class BlackFox:
         data_set_path=None,
         network_path=None
     ):
-        """
-        Train network
-
-        :param KerasTrainingConfig config:
-        :param str data_set_path:
-        :param str nework_path:
-        :return: TrainedNetwork
-                If data_set_path is not None upload data set
-                and sets config.dataset_id to new id.
-                If network_path is not None 
-                download network to given file.
-        """
         if data_set_path is not None:
             config.dataset_id = self.upload_data_set(data_set_path)
 
@@ -132,21 +116,6 @@ class BlackFox:
         data_set_path=None,
         result_path=None
     ):
-        """
-        Predict values and download results in file
-
-        :param PredictionFileConfig config:
-        :param str network_path:
-        :param str data_set_path:
-        :param str result_path:
-        :return: str: result data set id
-                If network_path is not None upload network,
-                and sets config.network_id to new id.
-                If data_set_path is not None upload data set,
-                and sets config.data_set_id to new id.
-                If result_path is not None download results
-                to given file.
-        """
         if network_path is not None:
             config.network_id = self.upload_network(network_path)
         if data_set_path is not None:
@@ -162,15 +131,6 @@ class BlackFox:
         config,
         network_path=None
     ):
-        """
-        Predict values and return results
-
-        :param PredictionArrayConfig config:
-        :param str network_path:
-        :return: list[list[float]]: 
-                If network_path is not None upload network,
-                and sets config.network_id to new id.
-        """
         if network_path is not None:
             config.network_id = self.upload_network(network_path)
         results = self.prediction_api.post_array(config=config)
@@ -222,23 +182,35 @@ class BlackFox:
         status_interval=5,
         log_writer=LogWriter()
     ):
-        """
-        Find optimal network for given problem.
-        :param KerasOptimizationConfig config:
-        :param str input_set:
-        :param str output_set:
-        :param bool integrate_scaler:
-        :param str network_type:
-        :param str data_set_path:
-        :param str network_path:
-        :param int status_interval:
-        :param str log_writer:
-        :return: (BytesIO, KerasOptimizedNetwork): byte array from network model, optimized network info
-                If data_set_path is not None upload data set,
-                and sets config.dataset_id to new id.
-                If network_path is not None download network to given file.
-                If log_writer is not None write to log file 
-                every 5 seconds(status_interval)
+        """Starts the optimization.
+
+        Performs the Black Fox optimization and finds the best parameters and hyperparameters of a target model neural network.
+
+        Parameters
+        ----------
+        input_set : str
+            Input data (x train data) 
+        output_set : str
+            Output data (y train data or target data)
+        integrate_scaler : bool
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model 
+        network_type : str
+            Optimized model file format (.h5 | .onnx | .pb)
+        data_set_path : str
+            Optional .csv file used instead of input_set/output_set as a source for training data
+        config : KerasSeriesOptimizationConfig
+            Configuration for Black Fox optimization
+        network_path : str
+            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging 
+        log_writer : str
+            Optional log writer used for logging the optimization process
+        
+        Returns
+        -------
+        (BytesIO, KerasOptimizedNetwork, dict)
+            byte array from network model, optimized network info, network metadata
         """
         return self.__optimize_keras_sync(
             is_series=False,
@@ -265,23 +237,35 @@ class BlackFox:
         status_interval=5,
         log_writer=LogWriter()
     ):
-        """
-        Find optimal network for given problem.
-        :param KerasSeriesOptimizationConfig config:
-        :param str input_set:
-        :param str output_set:
-        :param bool integrate_scaler:
-        :param str network_type:
-        :param str data_set_path:
-        :param str network_path:
-        :param int status_interval:
-        :param str log_writer:
-        :return: (BytesIO, KerasOptimizedNetwork, dict): byte array from network model, optimized network info, metadata
-                If data_set_path is not None upload data set,
-                and sets config.dataset_id to new id.
-                If network_path is not None download network to given file.
-                If log_writer is not None write to log file 
-                every 5 seconds(status_interval)
+        """Starts the optimization.
+
+        Performs the Black Fox optimization for timeseries data and finds the best parameters and hyperparameters of a target model neural network.
+
+        Parameters
+        ----------
+        input_set : str
+            Input data (x train data) 
+        output_set : str
+            Output data (y train data or target data)
+        integrate_scaler : bool
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model 
+        network_type : str
+            Optimized model file format (.h5 | .onnx | .pb)
+        data_set_path : str
+            Optional .csv file used instead of input_set/output_set as a source for training data
+        config : KerasSeriesOptimizationConfig
+            Configuration for Black Fox optimization
+        network_path : str
+            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging 
+        log_writer : str
+            Optional log writer used for logging the optimization process
+        
+        Returns
+        -------
+        (BytesIO, KerasOptimizedNetwork, dict)
+            byte array from network model, optimized network info, network metadata
         """
         return self.__optimize_keras_sync(
             is_series=True,
@@ -346,7 +330,8 @@ class BlackFox:
             if tmp_file is not None:
                 self.__log_string(log_writer, "Uploading data set")
             else:
-                self.__log_string(log_writer, "Uploading data set " + data_set_path)
+                self.__log_string(
+                    log_writer, "Uploading data set " + data_set_path)
             config.dataset_id = self.upload_data_set(data_set_path)
 
         if tmp_file is not None:
@@ -356,7 +341,7 @@ class BlackFox:
         if is_series:
             id = self.optimization_api.post_series_async(config=config)
         else:
-            id = self.optimization_api.post_async(config=config)
+            id = self.optimization_api.post(config=config)
 
         def signal_handler(sig, frame):
             self.__log_string(log_writer, "Stopping optimization : "+id)
@@ -369,7 +354,7 @@ class BlackFox:
         running = True
         status = None
         while running:
-            status = self.optimization_api.get_status_async(id)
+            status = self.optimization_api.get_status(id)
             running = (status.state == 'Active')
             self.__log_status(log_writer, id, status)
             time.sleep(status_interval)
@@ -378,8 +363,8 @@ class BlackFox:
             print('Optimization state: ', status.state)
             if status.network is not None and status.network.id is not None:
                 self.__log_string(log_writer,
-                         "Downloading network " +
-                         status.network.id)
+                                  "Downloading network " +
+                                  status.network.id)
                 network_stream = self.download_network(
                     status.network.id,
                     integrate_scaler=integrate_scaler,
@@ -388,12 +373,12 @@ class BlackFox:
                 data = network_stream.read()
                 if network_path is not None:
                     self.__log_string(log_writer,
-                             "Saving network " +
-                             status.network.id + " to " + network_path)
+                                      "Saving network " +
+                                      status.network.id + " to " + network_path)
                     with open(network_path, 'wb') as f:
                         f.write(data)
                 byte_io = BytesIO(data)
-                metadata = self.network_api.metadata(status.network.id)
+                metadata = self.network_api.get_metadata(status.network.id)
                 return byte_io, status.network, metadata
             else:
                 return None, None, None
@@ -405,26 +390,32 @@ class BlackFox:
 
         return None, None, None
 
-    @validate_optimization
+    #@validate_optimization
     def optimize_keras(
         self,
-        config,
+        config = KerasOptimizationConfig(),
         data_set_path=None
     ):
-        """
-        Find optimal network for given problem async.
+        """Async optimization call.
 
-        :param KerasOptimizationConfig config:
-        :param str data_set_path:
-        :return: str: 
-                If data_set_path is not None upload data set,
-                and sets config.dataset_id to new id.
-                Return optimization id.
+        Performs the Black Fox optimization asynchronously (non-blocking), so the user must querry the server periodically in order to get the progress info.
+
+        Parameters
+        ----------
+        config : KerasOptimizationConfig
+            Configuration for Black Fox optimization
+        data_set_path : str
+            Path to a .csv file holding the training dataset
+
+        Returns
+        -------
+        str
+            Optimization process id
         """
         # validate_optimize_keras(config)
         if data_set_path is not None:
             config.dataset_id = self.upload_data_set(data_set_path)
-        return self.optimization_api.post_async(config=config)
+        return self.optimization_api.post(config=config)
 
     def get_optimization_status_keras(
         self,
@@ -433,16 +424,27 @@ class BlackFox:
         network_type='h5',
         network_path=None
     ):
-        """
-        Get status for optimization.
+        """Gets current async optimization status.
 
-        :param KerasOptimizationConfig config:
-        :param str network_path:
-        :return: KerasOptimizationStatus: 
-                If data_set_path is not None upload data set,
-                and sets config.dataset_id to new id.
+        Query of the current optimization status when it is performed asynchronously.
+
+        Parameters
+        ----------
+        id : str
+            Optimization process id (i.e. from optimize_keras method)
+        integrate_scaler : bool
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model 
+        network_type : str
+            Optimized model file format (.h5 | .onnx | .pb)
+        network_path : str
+            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+
+        Returns
+        -------
+        KerasOptimizationStatus
+            An object depicting the current optimization status
         """
-        status = self.optimization_api.get_status_async(id)
+        status = self.optimization_api.get_status(id)
         if (
             (status.state == 'Finished' or status.state == 'Stopped')
             and (network_path is not None)
@@ -456,27 +458,26 @@ class BlackFox:
         return status
 
     def cancel_optimization_keras(self, id):
-        """
-            Cancel optimization.
-
-            :param str id:
-            :return: None: 
-                    Call get_optimization_status_keras to get status.
-        """
-        self.optimization_api.post_action_async(id, 'Cancel')
+        self.optimization_api.post_action(id, 'Cancel')
 
     def stop_optimization_keras(self, id, network_path=None):
-        """
-            Stop optimization
+        """Stops current async optimization.
 
-            :param str id:
-            :param str network_path:
-            :return: None: 
-                    If network_path is not None download network to given file,
-                    else call get_optimization_status_keras to get status
-                    and download network.
+        Sends a request for stopping the ongoing optimization, and returns the current best solution.
+
+        Parameters
+        ----------
+        id : str
+            Optimization process id (i.e. from optimize_keras method)
+        network_path : str
+            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+
+        Returns
+        -------
+        KerasOptimizationStatus
+            An object depicting the current optimization status
         """
-        self.optimization_api.post_action_async(id, 'Stop')
+        self.optimization_api.post_action(id, 'Stop')
         if network_path is not None:
             state = 'Active'
             while state == 'Active':
@@ -495,23 +496,35 @@ class BlackFox:
         status_interval=5,
         log_writer=LogWriter()
     ):
-        """
-        Find optimal network for given problem.
-        :param KerasRecurrentOptimizationConfig config:
-        :param str input_set:
-        :param str output_set:
-        :param bool integrate_scaler:
-        :param str network_type:
-        :param str data_set_path:
-        :param str network_path:
-        :param int status_interval:
-        :param str log_writer:
-        :return: (BytesIO, KerasRecurrentOptimizedNetwork, dict): byte array from network model, optimized network info, metadata
-                If data_set_path is not None upload data set,
-                and sets config.dataset_id to new id.
-                If network_path is not None download network to given file.
-                If log_writer is not None write to log file 
-                every 5 seconds(status_interval)
+        """Starts the optimization.
+
+        Performs the Black Fox optimization using recurrent neural networks and finds the best parameters and hyperparameters of a target model.
+
+        Parameters
+        ----------
+        input_set : str
+            Input data (x train data) 
+        output_set : str
+            Output data (y train data or target data)
+        integrate_scaler : bool
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model 
+        network_type : str
+            Optimized model file format (.h5 | .onnx | .pb)
+        data_set_path : str
+            Optional .csv file used instead of input_set/output_set as a source for training data
+        config : KerasRecurrentOptimizationConfig 
+            Configuration for Black Fox optimization
+        network_path : str
+            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging 
+        log_writer : str
+            Optional log writer used for logging the optimization process
+        
+        Returns
+        -------
+        (BytesIO, KerasOptimizedNetwork, dict)
+            byte array from network model, optimized network info, network metadata
         """
         print('Use CTRL + C to stop optimization')
         tmp_file = None
@@ -551,7 +564,7 @@ class BlackFox:
                 self.__log_string(log_writer, "Uploading data set")
             else:
                 self.__log_string(log_writer, "Uploading data set " +
-                         data_set_path)
+                                  data_set_path)
             config.dataset_id = self.upload_data_set(data_set_path)
 
         if tmp_file is not None:
@@ -573,34 +586,15 @@ class BlackFox:
         while running:
             status = self.recurrent_optimization_api.get_status(id)
             running = (status.state == 'Active')
-            if log_writer is not None:
-                self.__log_string(
-                    log_writer,
-                    ("%s -> %s, "
-                     "Generation: %s/%s, "
-                     "Validation set error: %f, "
-                     "Training set error: %f, "
-                     "Epoch: %d, "
-                     "Optimization Id: %s") %
-                    (
-                        datetime.now(),
-                        status.state,
-                        status.generation,
-                        status.total_generations,
-                        status.validation_set_error,
-                        status.training_set_error,
-                        status.epoch,
-                        id
-                    )
-                )
+            self.__log_status(log_writer, id, status)
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
             print('Optimization state: ', status.state)
             if status.network is not None and status.network.id is not None:
                 self.__log_string(log_writer,
-                         "Downloading network " +
-                         status.network.id)
+                                  "Downloading network " +
+                                  status.network.id)
                 network_stream = self.download_network(
                     status.network.id,
                     integrate_scaler=integrate_scaler,
@@ -609,12 +603,12 @@ class BlackFox:
                 data = network_stream.read()
                 if network_path is not None:
                     self.__log_string(log_writer,
-                             "Saving network " +
-                             status.network.id + " to " + network_path)
+                                      "Saving network " +
+                                      status.network.id + " to " + network_path)
                     with open(network_path, 'wb') as f:
                         f.write(data)
                 byte_io = BytesIO(data)
-                metadata = self.network_api.metadata(status.network.id)
+                metadata = self.network_api.get_metadata(status.network.id)
                 return byte_io, status.network, metadata
             else:
                 return None, None, None
@@ -627,11 +621,19 @@ class BlackFox:
         return None, None, None
 
     def get_metadata(self, network_path):
-        """
-        Get network metadata.
+        """Network metadata retrieval
 
-        :param str or BytesIO network_path:
-        :return: dict: 
+        Gets the neural network metadata from a network file.
+
+        Parameters
+        ----------
+        network_path : str
+            Load path for the neural network file from wich the metadata would be read
+
+        Returns
+        -------
+        dict
+            network metadata
         """
         id = None
         if isinstance(network_path, BytesIO):
@@ -643,7 +645,7 @@ class BlackFox:
         else:
             id = self.upload_network(network_path)
 
-        return self.network_api.metadata(id)
+        return self.network_api.get_metadata(id)
 
     def convert_to(self, network_path, network_type, network_dst_path=None, integrate_scaler=False):
         id = None

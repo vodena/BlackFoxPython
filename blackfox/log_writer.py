@@ -2,6 +2,14 @@ from datetime import datetime
 import sys
 
 class LogWriter(object):
+    """LogWriter provides logging capabilities for an ongoing Black Fox optimization.
+
+    Parameters
+    ----------
+    log_file : str
+        Optional file or sys.stdout used for logging
+
+    """
 
     def __init__(self, log_file=sys.stdout):
         self.log_file = log_file

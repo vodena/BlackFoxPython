@@ -1,6 +1,4 @@
-from blackfox import BlackFox
-from blackfox import PredictionFileConfig
-from blackfox import Range
+from blackfox import BlackFox, PredictionFileConfig, Range
 
 blackfox_url = 'http://147.91.204.14:32701'
 bf = BlackFox(blackfox_url)
