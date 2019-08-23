@@ -339,7 +339,7 @@ class BlackFox:
 
         self.__log_string(log_writer, "Starting...")
         if is_series:
-            id = self.optimization_api.post_series_async(config=config)
+            id = self.optimization_api.post_series(config=config)
         else:
             id = self.optimization_api.post(config=config)
 
