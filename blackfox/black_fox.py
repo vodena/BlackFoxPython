@@ -189,11 +189,11 @@ class BlackFox:
         Parameters
         ----------
         input_set : str
-            Input data (x train data) 
+            Input data (x train data)
         output_set : str
             Output data (y train data or target data)
         integrate_scaler : bool
-            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model 
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         network_type : str
             Optimized model file format (.h5 | .onnx | .pb)
         data_set_path : str
@@ -203,10 +203,10 @@ class BlackFox:
         network_path : str
             Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
         status_interval : int
-            Time interval for repeated server calls for optimization info and logging 
+            Time interval for repeated server calls for optimization info and logging
         log_writer : str
             Optional log writer used for logging the optimization process
-        
+
         Returns
         -------
         (BytesIO, KerasOptimizedNetwork, dict)
@@ -244,11 +244,11 @@ class BlackFox:
         Parameters
         ----------
         input_set : str
-            Input data (x train data) 
+            Input data (x train data)
         output_set : str
             Output data (y train data or target data)
         integrate_scaler : bool
-            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model 
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         network_type : str
             Optimized model file format (.h5 | .onnx | .pb)
         data_set_path : str
@@ -258,10 +258,10 @@ class BlackFox:
         network_path : str
             Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
         status_interval : int
-            Time interval for repeated server calls for optimization info and logging 
+            Time interval for repeated server calls for optimization info and logging
         log_writer : str
             Optional log writer used for logging the optimization process
-        
+
         Returns
         -------
         (BytesIO, KerasOptimizedNetwork, dict)
@@ -320,6 +320,12 @@ class BlackFox:
                 self.__log_string(log_writer, 'Ignoring data_set_path')
             data_set_path = str(tmp_file.name)
 
+        if is_series:
+            if len(config.inputs) != len(config.input_window_range_configs):
+                raise Exception('Number of input columns is not same as input_window_range_configs')
+            if len(config.output_ranges) != len(config.output_window_configs):
+                raise Exception('Number of output columns is not same as output_window_configs')
+
         if data_set_path is not None:
             if config.inputs is None:
                 self.__log_string(log_writer, "config.inputs is None")
@@ -354,9 +360,12 @@ class BlackFox:
         running = True
         status = None
         while running:
-            status = self.optimization_api.get_status(id)
-            running = (status.state == 'Active')
-            self.__log_status(log_writer, id, status)
+            try:
+                status = self.optimization_api.get_status(id)
+                running = (status.state == 'Active')
+                self.__log_status(log_writer, id, status)
+            except Exception as e:
+                self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
@@ -393,7 +402,7 @@ class BlackFox:
     @validate_optimization
     def optimize_keras(
         self,
-        config = KerasOptimizationConfig(),
+        config=KerasOptimizationConfig(),
         data_set_path=None
     ):
         """Async optimization call.
@@ -433,7 +442,7 @@ class BlackFox:
         id : str
             Optimization process id (i.e. from optimize_keras method)
         integrate_scaler : bool
-            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model 
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         network_type : str
             Optimized model file format (.h5 | .onnx | .pb)
         network_path : str
@@ -503,24 +512,24 @@ class BlackFox:
         Parameters
         ----------
         input_set : str
-            Input data (x train data) 
+            Input data (x train data)
         output_set : str
             Output data (y train data or target data)
         integrate_scaler : bool
-            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model 
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         network_type : str
             Optimized model file format (.h5 | .onnx | .pb)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
-        config : KerasRecurrentOptimizationConfig 
+        config : KerasRecurrentOptimizationConfig
             Configuration for Black Fox optimization
         network_path : str
             Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
         status_interval : int
-            Time interval for repeated server calls for optimization info and logging 
+            Time interval for repeated server calls for optimization info and logging
         log_writer : str
             Optional log writer used for logging the optimization process
-        
+
         Returns
         -------
         (BytesIO, KerasOptimizedNetwork, dict)

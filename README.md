@@ -3,7 +3,7 @@
 Python package for communication with BlackFoxWebAPI
 
 - API version: v1
-- Package version: 0.0.10
+- Package version: 0.0.11
 
 ## Requirements.
 
@@ -19,10 +19,10 @@ pip install blackfox
 
 ### pip install tar.gz
 
-Download [blackfox-0.0.10.tar.gz](https://github.com/vodena/BlackFoxPython/raw/master/dist/blackfox-0.0.10.tar.gz)
+Download [blackfox-0.0.11.tar.gz](https://github.com/vodena/BlackFoxPython/raw/master/dist/blackfox-0.0.11.tar.gz)
 
 ```sh
-pip install blackfox-0.0.10.tar.gz
+pip install blackfox-0.0.11.tar.gz
 ```
 
 You can install directly from Github
