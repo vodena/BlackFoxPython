@@ -1,3 +1,8 @@
+from blackfox.validation import (validate_training,
+                                 validate_optimization,
+                                 validate_prediction_file,
+                                 validate_prediction_array)
+from blackfox.log_writer import LogWriter
 from tempfile import NamedTemporaryFile
 from io import BytesIO
 import os
@@ -6,12 +11,10 @@ import signal
 import time
 import shutil
 import hashlib
-from blackfox import ApiException, Configuration, ApiClient, DataSetApi, NetworkApi, PredictionApi, TrainingApi, OptimizationApi, RecurrentOptimizationApi, KerasOptimizationConfig, KerasRecurrentOptimizationConfig, KerasSeriesOptimizationConfig, InputConfig, Range
-from blackfox.log_writer import LogWriter
-from blackfox.validation import (validate_training,
-                                 validate_optimization,
-                                 validate_prediction_file,
-                                 validate_prediction_array)
+from blackfox import (ApiException, Configuration, ApiClient, DataSetApi,
+                      NetworkApi, PredictionApi, TrainingApi, OptimizationApi,
+                      RecurrentOptimizationApi, KerasOptimizationConfig, KerasRecurrentOptimizationConfig,
+                      KerasSeriesOptimizationConfig, InputConfig, Range, OptimizationEngineConfig, ConvergencyCriterion)
 
 
 BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
@@ -76,17 +79,17 @@ class BlackFox:
 
     def download_network(
         self, id, integrate_scaler=False,
-        network_type='h5', path=None
+        file_type='h5', path=None
     ):
         temp_path = self.network_api.get(
-            id, integrate_scaler=integrate_scaler, network_type=network_type)
+            id, integrate_scaler=integrate_scaler, network_type=file_type)
         if path is None:
             return open(temp_path, 'rb')
         else:
             shutil.move(temp_path, path)
 
     @validate_training
-    def train_keras(
+    def train(
         self,
         config,
         integrate_scaler=False,
@@ -103,13 +106,13 @@ class BlackFox:
             self.download_network(
                 trained_network.id,
                 integrate_scaler=integrate_scaler,
-                network_type=network_type,
+                file_type=network_type,
                 path=network_path)
 
         return trained_network
 
     @validate_prediction_file
-    def predict_from_file_keras(
+    def predict_from_file(
         self,
         config,
         network_path=None,
@@ -126,7 +129,7 @@ class BlackFox:
         return result_id
 
     @validate_prediction_array
-    def predict_from_array_keras(
+    def predict_from_array(
         self,
         config,
         network_path=None
@@ -170,15 +173,39 @@ class BlackFox:
                         inp.range.max = max(inp.range.max, d)
         return inputs
 
-    def optimize_keras_sync(
+    def optimize(
         self,
-        input_set=None,
-        output_set=None,
-        integrate_scaler=False,
-        network_type='h5',
+        input_set,
+        output_set,
         data_set_path=None,
-        config=KerasOptimizationConfig(),
-        network_path=None,
+        # config
+        dropout=Range(0.0, 0.25),
+        batch_size=32,
+        problem_type='Regression',
+        hidden_layer_count=Range(min=1, max=15),
+        neurons_per_layer=Range(min=1, max=10),
+        training_algorithms=["SGD", "RMSprop", "Adagrad",
+                             "Adadelta", "Adam", "Adamax", "Nadam"],
+        activation_functions=["SoftMax", "Elu", "Selu", "SoftPlus",
+                              "SoftSign", "ReLu", "TanH", "Sigmoid",
+                              "HardSigmoid", "Linear"],
+        max_epoch=3000,
+        validation_split=0.2,
+        random_seed=300,
+        # engine config
+        optimization_algorithm='VidnerovaNeruda',
+        crossover_distribution_index=None,
+        crossover_probability=None,
+        mutation_distribution_index=None,
+        mutation_probability=None,
+        proc_timeout_seconds=10800,  # 3h
+        max_num_of_generations=20,
+        population_size=50,
+        hyper_volume=ConvergencyCriterion(),
+        # output
+        integrate_scaler=False,
+        model_file_type='h5',
+        resulting_model_path=None,
         status_interval=5,
         log_writer=LogWriter()
     ):
@@ -192,16 +219,52 @@ class BlackFox:
             Input data (x train data)
         output_set : str
             Output data (y train data or target data)
-        integrate_scaler : bool
-            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
-        network_type : str
-            Optimized model file format (.h5 | .onnx | .pb)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
-        config : KerasSeriesOptimizationConfig
-            Configuration for Black Fox optimization
-        network_path : str
-            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+        dropout : Range
+            Range in which to search optimal dropout, default Range(0.0, 0.25)
+        batch_size : int
+            Batch size, default 32
+        problem_type : str
+            Problem type (Regression |  |  ), default Regression
+        hidden_layer_count : Range
+            Range in which to search optimal number of hidden layers, default Range(1, 10)
+        neurons_per_layer : Range
+            Range in which to search optimal number of neurons per layer, default Range(1, 15)
+        training_algorithms : str
+            List of training algorithms to use (SGD, RMSprop, Adagrad, Adadelta, Adam, Adamax, Nadam)
+        activation_functions : str
+            List of activation functions to use (SoftMax, Elu, Selu, SoftPlus, SoftSign, ReLu, TanH, Sigmoid, HardSigmoid, Linear)
+        max_epoch : int
+            Maximum number of epoch, default 3000
+        validation_split : float
+            Validation split, default 0.2
+        random_seed : int
+            Random seed for shuffle, defаult 300
+        optimization_algorithm : str
+            Optimization algorithm (SimpleGA | VidnerovaNeruda), default VidnerovaNeruda
+        crossover_distribution_index : float
+            Crossover distribution index, default
+        crossover_probability : float
+            Crossover probability
+        mutation_distribution_index : float
+            Mutation distribution index
+        mutation_probability : float
+            Mutation probability
+        proc_timeout_seconds : int
+            proc_timeout_seconds, default 10800
+        max_num_of_generations : int
+            Max num of generations, default 20
+        population_size
+            {opulation size, default 50
+        hyper_volume : ConvergencyCriterion
+            Use hyper volume to stop optimization if it is not making significant improvement 
+        integrate_scaler : bool
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
+        model_file_format : str
+            Optimized model file format (.h5 | .onnx | .pb)
+        resulting_model_path : str
+            Save path for the optimized model; will be used after the function finishes to automatically save optimized model
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
         log_writer : str
@@ -212,28 +275,78 @@ class BlackFox:
         (BytesIO, KerasOptimizedNetwork, dict)
             byte array from network model, optimized network info, network metadata
         """
-        return self.__optimize_keras_sync(
+        engine_config = OptimizationEngineConfig(
+            optimization_algorithm=optimization_algorithm, 
+            crossover_distribution_index=crossover_distribution_index, 
+            crossover_probability=crossover_probability, 
+            mutation_distribution_index=mutation_distribution_index, 
+            mutation_probability=mutation_probability, 
+            proc_timeout_seconds=proc_timeout_seconds, 
+            max_num_of_generations=max_num_of_generations, 
+            population_size=population_size, 
+            hyper_volume=hyper_volume
+        )
+        config = KerasOptimizationConfig(
+            dropout=dropout,
+            batch_size=batch_size,
+            problem_type=problem_type,
+            hidden_layer_count_range=hidden_layer_count,
+            neurons_per_layer=neurons_per_layer,
+            training_algorithms=training_algorithms,
+            activation_functions=activation_functions,
+            max_epoch=max_epoch,
+            validation_split=validation_split,
+            random_seed=random_seed,
+            engine_config=engine_config)
+        return self.__optimize(
             is_series=False,
             input_set=input_set,
             output_set=output_set,
             integrate_scaler=integrate_scaler,
-            network_type=network_type,
+            model_file_type=model_file_type,
             data_set_path=data_set_path,
             config=config,
-            network_path=network_path,
+            resulting_model_path=resulting_model_path,
             status_interval=status_interval,
             log_writer=log_writer
         )
 
-    def optimize_series_keras_sync(
+    def optimize_series(
         self,
-        input_set=None,
-        output_set=None,
-        integrate_scaler=False,
-        network_type='h5',
+        input_set,
+        output_set,
+        input_window_configs,
+        output_window_configs,
+        output_sample_step=1,
         data_set_path=None,
-        config=KerasSeriesOptimizationConfig(),
-        network_path=None,
+        # config
+        dropout=Range(0.0, 0.25),
+        batch_size=32,
+        problem_type='Regression',
+        hidden_layer_count=Range(min=1, max=15),
+        neurons_per_layer=Range(min=1, max=10),
+        training_algorithms=["SGD", "RMSprop", "Adagrad",
+                             "Adadelta", "Adam", "Adamax", "Nadam"],
+        activation_functions=["SoftMax", "Elu", "Selu", "SoftPlus",
+                              "SoftSign", "ReLu", "TanH", "Sigmoid",
+                              "HardSigmoid", "Linear"],
+        max_epoch=3000,
+        validation_split=0.2,
+        random_seed=300,
+        # engine config
+        optimization_algorithm='VidnerovaNeruda',
+        crossover_distribution_index=None,
+        crossover_probability=None,
+        mutation_distribution_index=None,
+        mutation_probability=None,
+        proc_timeout_seconds=10800,  # 3h
+        max_num_of_generations=20,
+        population_size=50,
+        hyper_volume=ConvergencyCriterion(),
+        # output
+        integrate_scaler=False,
+        model_file_type='h5',
+        resulting_model_path=None,
         status_interval=5,
         log_writer=LogWriter()
     ):
@@ -253,10 +366,50 @@ class BlackFox:
             Optimized model file format (.h5 | .onnx | .pb)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
-        config : KerasSeriesOptimizationConfig
-            Configuration for Black Fox optimization
-        network_path : str
-            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+        dropout : Range
+            Range in which to search optimal dropout, default Range(0.0, 0.25)
+        batch_size : int
+            Batch size, default 32
+        problem_type : str
+            Problem type (Regression |  |  ), default Regression
+        hidden_layer_count : Range
+            Range in which to search optimal number of hidden layers, default Range(1, 10)
+        neurons_per_layer : Range
+            Range in which to search optimal number of neurons per layer, default Range(1, 15)
+        training_algorithms : str
+            List of training algorithms to use (SGD, RMSprop, Adagrad, Adadelta, Adam, Adamax, Nadam)
+        activation_functions : str
+            List of activation functions to use (SoftMax, Elu, Selu, SoftPlus, SoftSign, ReLu, TanH, Sigmoid, HardSigmoid, Linear)
+        max_epoch : int
+            Maximum number of epoch, default 3000
+        validation_split : float
+            Validation split, default 0.2
+        random_seed : int
+            Random seed for shuffle, defаult 300
+        optimization_algorithm : str
+            Optimization algorithm (SimpleGA | VidnerovaNeruda), default VidnerovaNeruda
+        crossover_distribution_index : float
+            Crossover distribution index, default
+        crossover_probability : float
+            Crossover probability
+        mutation_distribution_index : float
+            Mutation distribution index
+        mutation_probability : float
+            Mutation probability
+        proc_timeout_seconds : int
+            proc_timeout_seconds, default 10800
+        max_num_of_generations : int
+            Max num of generations, default 20
+        population_size
+            {opulation size, default 50
+        hyper_volume : ConvergencyCriterion
+            Use hyper volume to stop optimization if it is not making significant improvement 
+        integrate_scaler : bool
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
+        model_file_format : str
+            Optimized model file format (.h5 | .onnx | .pb)
+        resulting_model_path : str
+            Save path for the optimized model; will be used after the function finishes to automatically save optimized model
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
         log_writer : str
@@ -267,29 +420,55 @@ class BlackFox:
         (BytesIO, KerasOptimizedNetwork, dict)
             byte array from network model, optimized network info, network metadata
         """
-        return self.__optimize_keras_sync(
+        engine_config = OptimizationEngineConfig(
+            optimization_algorithm=optimization_algorithm, 
+            crossover_distribution_index=crossover_distribution_index, 
+            crossover_probability=crossover_probability, 
+            mutation_distribution_index=mutation_distribution_index, 
+            mutation_probability=mutation_probability, 
+            proc_timeout_seconds=proc_timeout_seconds, 
+            max_num_of_generations=max_num_of_generations, 
+            population_size=population_size, 
+            hyper_volume=hyper_volume
+        )
+        config = KerasSeriesOptimizationConfig(
+            input_window_range_configs=input_window_configs,
+            output_window_configs=output_window_configs,
+            output_sample_step=output_sample_step,
+            dropout=dropout,
+            batch_size=batch_size,
+            problem_type=problem_type,
+            hidden_layer_count_range=hidden_layer_count,
+            neurons_per_layer=neurons_per_layer,
+            training_algorithms=training_algorithms,
+            activation_functions=activation_functions,
+            max_epoch=max_epoch,
+            validation_split=validation_split,
+            random_seed=random_seed,
+            engine_config=engine_config)
+        return self.__optimize(
             is_series=True,
             input_set=input_set,
             output_set=output_set,
             integrate_scaler=integrate_scaler,
-            network_type=network_type,
+            model_file_type=model_file_type,
             data_set_path=data_set_path,
             config=config,
-            network_path=network_path,
+            resulting_model_path=resulting_model_path,
             status_interval=status_interval,
             log_writer=log_writer
         )
 
-    def __optimize_keras_sync(
+    def __optimize(
         self,
         is_series=False,
         input_set=None,
         output_set=None,
         integrate_scaler=False,
-        network_type='h5',
+        model_file_type='h5',
         data_set_path=None,
         config=None,
-        network_path=None,
+        resulting_model_path=None,
         status_interval=5,
         log_writer=LogWriter()
     ):
@@ -322,9 +501,11 @@ class BlackFox:
 
         if is_series:
             if len(config.inputs) != len(config.input_window_range_configs):
-                raise Exception('Number of input columns is not same as input_window_range_configs')
+                raise Exception(
+                    'Number of input columns is not same as input_window_range_configs')
             if len(config.output_ranges) != len(config.output_window_configs):
-                raise Exception('Number of output columns is not same as output_window_configs')
+                raise Exception(
+                    'Number of output columns is not same as output_window_configs')
 
         if data_set_path is not None:
             if config.inputs is None:
@@ -353,7 +534,7 @@ class BlackFox:
             self.__log_string(log_writer, "Stopping optimization : "+id)
             if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
                 print("Stopping optimization : "+id)
-            self.stop_optimization_keras(id)
+            self.stop_optimization(id)
 
         signal.signal(signal.SIGINT, signal_handler)
 
@@ -377,14 +558,14 @@ class BlackFox:
                 network_stream = self.download_network(
                     status.network.id,
                     integrate_scaler=integrate_scaler,
-                    network_type=network_type
+                    file_type=model_file_type
                 )
                 data = network_stream.read()
-                if network_path is not None:
+                if resulting_model_path is not None:
                     self.__log_string(log_writer,
                                       "Saving network " +
-                                      status.network.id + " to " + network_path)
-                    with open(network_path, 'wb') as f:
+                                      status.network.id + " to " + resulting_model_path)
+                    with open(resulting_model_path, 'wb') as f:
                         f.write(data)
                 byte_io = BytesIO(data)
                 metadata = self.network_api.get_metadata(status.network.id)
@@ -400,14 +581,14 @@ class BlackFox:
         return None, None, None
 
     @validate_optimization
-    def optimize_keras(
+    def optimize_async(
         self,
         config=KerasOptimizationConfig(),
         data_set_path=None
     ):
         """Async optimization call.
 
-        Performs the Black Fox optimization asynchronously (non-blocking), so the user must querry the server periodically in order to get the progress info.
+        Performs the Black Fox optimization asynchronously (non-blocking), so the user must query the server periodically in order to get the progress info.
 
         Parameters
         ----------
@@ -421,12 +602,12 @@ class BlackFox:
         str
             Optimization process id
         """
-        # validate_optimize_keras(config)
+        # validate_optimize(config)
         if data_set_path is not None:
             config.dataset_id = self.upload_data_set(data_set_path)
         return self.optimization_api.post(config=config)
 
-    def get_optimization_status_keras(
+    def get_optimization_status(
         self,
         id,
         integrate_scaler=False,
@@ -440,7 +621,7 @@ class BlackFox:
         Parameters
         ----------
         id : str
-            Optimization process id (i.e. from optimize_keras method)
+            Optimization process id (i.e. from optimize_async method)
         integrate_scaler : bool
             If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         network_type : str
@@ -461,15 +642,15 @@ class BlackFox:
             self.download_network(
                 status.network.id,
                 integrate_scaler=integrate_scaler,
-                network_type=network_type,
+                file_type=network_type,
                 path=network_path)
 
         return status
 
-    def cancel_optimization_keras(self, id):
+    def cancel_optimizatio(self, id):
         self.optimization_api.post_action(id, 'Cancel')
 
-    def stop_optimization_keras(self, id, network_path=None):
+    def stop_optimization(self, id, network_path=None):
         """Stops current async optimization.
 
         Sends a request for stopping the ongoing optimization, and returns the current best solution.
@@ -490,10 +671,10 @@ class BlackFox:
         if network_path is not None:
             state = 'Active'
             while state == 'Active':
-                status = self.get_optimization_status_keras(id, network_path)
+                status = self.get_optimization_status(id, network_path)
                 state = status.state
 
-    def optimize_recurrent_keras_sync(
+    def optimize_recurrent(
         self,
         input_set=None,
         output_set=None,
@@ -586,7 +767,7 @@ class BlackFox:
             self.__log_string(log_writer, "Stopping optimization : "+id)
             if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
                 print("Stopping optimization : "+id)
-            self.stop_optimization_keras(id)
+            self.stop_optimization(id)
 
         signal.signal(signal.SIGINT, signal_handler)
 
@@ -607,7 +788,7 @@ class BlackFox:
                 network_stream = self.download_network(
                     status.network.id,
                     integrate_scaler=integrate_scaler,
-                    network_type=network_type
+                    file_type=network_type
                 )
                 data = network_stream.read()
                 if network_path is not None:
@@ -668,7 +849,7 @@ class BlackFox:
             id = self.upload_network(network_path)
         stream = self.download_network(
             id,
-            network_type=network_type,
+            file_type=network_type,
             integrate_scaler=integrate_scaler,
             path=network_dst_path
         )
