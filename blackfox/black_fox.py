@@ -326,6 +326,19 @@ class BlackFox:
             if len(config.output_ranges) != len(config.output_window_configs):
                 raise Exception('Number of output columns is not same as output_window_configs')
 
+        if config.hidden_layer_count_range is None:
+            config.hidden_layer_count_range = Range(1, 15)
+
+        if config.dropout is None:
+            config.dropout = Range(0, 25)
+
+        if config.neurons_per_layer is None:
+            if config.inputs is None or config.output_ranges is None:
+                config.neurons_per_layer = Range(1, 10)
+            else:
+                avg_count = int(len(config.inputs) + len(config.output_ranges)) / 2
+                config.neurons_per_layer = Range(int(avg_count / 3), int(avg_count * 3))
+
         if data_set_path is not None:
             if config.inputs is None:
                 self.__log_string(log_writer, "config.inputs is None")
