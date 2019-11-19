@@ -332,12 +332,24 @@ class BlackFox:
         if config.dropout is None:
             config.dropout = Range(0, 25)
 
+        print(config.neurons_per_layer)
+
         if config.neurons_per_layer is None:
             if config.inputs is None or config.output_ranges is None:
                 config.neurons_per_layer = Range(1, 10)
             else:
                 avg_count = int(len(config.inputs) + len(config.output_ranges)) / 2
-                config.neurons_per_layer = Range(int(avg_count / 3), int(avg_count * 3))
+                min_neurons = int(avg_count / 3)
+                max_neurons = int(avg_count * 3)
+                print(min_neurons)
+                print(max_neurons)
+                if min_neurons <= 0:
+                    min_neurons = 1
+                if max_neurons < 10:
+                    max_neurons = 10
+                config.neurons_per_layer = Range(min_neurons, max_neurons)
+
+        print(config.neurons_per_layer)
 
         if data_set_path is not None:
             if config.inputs is None:
@@ -574,6 +586,28 @@ class BlackFox:
             if data_set_path is not None:
                 self.__log_string(log_writer, 'Ignoring data_set_path')
             data_set_path = str(tmp_file.name)
+
+        if config.hidden_layer_count_range is None:
+            config.hidden_layer_count_range = Range(1, 15)
+
+        if config.dropout is None:
+            config.dropout = Range(0, 25)
+
+        if config.recurrent_dropout is None:
+            config.recurrent_dropout = Range(0, 25)
+
+        if config.neurons_per_layer is None:
+            if config.inputs is None or config.output_ranges is None:
+                config.neurons_per_layer = Range(1, 10)
+            else:
+                avg_count = int(len(config.inputs) + len(config.output_ranges)) / 2
+                min_neurons = int(avg_count / 3)
+                max_neurons = int(avg_count * 3)
+                if min_neurons <= 0:
+                    min_neurons = 1
+                if max_neurons < 10:
+                    max_neurons = 10
+                config.neurons_per_layer = Range(min_neurons, max_neurons)
 
         if data_set_path is not None:
             if config.inputs is None:

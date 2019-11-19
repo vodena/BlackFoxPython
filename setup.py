@@ -21,7 +21,7 @@ VERSION = "0.0.12"
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
 
-REQUIRES = ["urllib3 >= 1.15", "six >= 1.10", "certifi", "python-dateutil", "blackfox-restapi >= 0.1.0"]
+REQUIRES = ["urllib3 >= 1.15", "six >= 1.10", "certifi", "python-dateutil", "blackfox-restapi >= 0.1.2"]
 
 setup(
     name=NAME,
