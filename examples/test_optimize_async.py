@@ -3,7 +3,7 @@ from blackfox import KerasOptimizationConfig, InputConfig, Range
 import time
 from datetime import datetime
 
-blackfox_url = 'http://147.91.204.14:32702'
+blackfox_url = 'localhost'
 bf = BlackFox(blackfox_url)
 
 config = KerasOptimizationConfig(
