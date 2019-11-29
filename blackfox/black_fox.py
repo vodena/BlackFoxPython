@@ -330,7 +330,7 @@ class BlackFox:
             config.hidden_layer_count_range = Range(1, 15)
 
         if config.dropout is None:
-            config.dropout = Range(0, 25)
+            config.dropout = Range(0, 0.25)
 
         if config.neurons_per_layer is None:
             if config.inputs is None or config.output_ranges is None:
@@ -585,10 +585,10 @@ class BlackFox:
             config.hidden_layer_count_range = Range(1, 15)
 
         if config.dropout is None:
-            config.dropout = Range(0, 25)
+            config.dropout = Range(0, 0.25)
 
         if config.recurrent_dropout is None:
-            config.recurrent_dropout = Range(0, 25)
+            config.recurrent_dropout = Range(0, 0.25)
 
         if config.neurons_per_layer is None:
             if config.inputs is None or config.output_ranges is None:
@@ -635,6 +635,142 @@ class BlackFox:
         status = None
         while running:
             status = self.recurrent_optimization_api.get_status(id)
+            running = (status.state == 'Active')
+            self.__log_status(log_writer, id, status)
+            time.sleep(status_interval)
+
+        if status.state == 'Finished' or status.state == 'Stopped':
+            print('Optimization state: ', status.state)
+            if status.network is not None and status.network.id is not None:
+                self.__log_string(log_writer,
+                                  "Downloading network " +
+                                  status.network.id)
+                network_stream = self.download_network(
+                    status.network.id,
+                    integrate_scaler=integrate_scaler,
+                    network_type=network_type
+                )
+                data = network_stream.read()
+                if network_path is not None:
+                    self.__log_string(log_writer,
+                                      "Saving network " +
+                                      status.network.id + " to " + network_path)
+                    with open(network_path, 'wb') as f:
+                        f.write(data)
+                byte_io = BytesIO(data)
+                metadata = self.network_api.get_metadata(status.network.id)
+                return byte_io, status.network, metadata
+            else:
+                return None, None, None
+
+        elif status.state == 'Error':
+            self.__log_string(log_writer, "Optimization error")
+        else:
+            self.__log_string(log_writer, "Unknown error")
+
+        return None, None, None
+
+    def optimize_random_forest_sync(
+        self,
+        input_set=None,
+        output_set=None,
+        integrate_scaler=False,
+        network_type='h5',
+        data_set_path=None,
+        config=None,
+        network_path=None,
+        status_interval=5,
+        log_writer=LogWriter()
+    ):
+        """Starts the optimization.
+
+        Performs the Black Fox optimization using random forest and finds the best parameters and hyperparameters of a target model.
+
+        Parameters
+        ----------
+        input_set : str
+            Input data (x train data)
+        output_set : str
+            Output data (y train data or target data)
+        integrate_scaler : bool
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
+        network_type : str
+            Optimized model file format (.h5 | .onnx | .pb)
+        data_set_path : str
+            Optional .csv file used instead of input_set/output_set as a source for training data
+        config : RandomForestOptimizationConfig
+            Configuration for Black Fox optimization
+        network_path : str
+            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging
+        log_writer : str
+            Optional log writer used for logging the optimization process
+
+        Returns
+        -------
+        (BytesIO, KerasOptimizedNetwork, dict)
+            byte array from network model, optimized network info, network metadata
+        """
+        print('Use CTRL + C to stop optimization')
+        tmp_file = None
+        if input_set is not None and output_set is not None:
+            if type(input_set) is not list:
+                input_set = input_set.tolist()
+            if type(output_set) is not list:
+                output_set = output_set.tolist()
+            tmp_file = NamedTemporaryFile(delete=False)
+            # input ranges
+            config.inputs = self.__fill_inputs(config.inputs, input_set)
+            # output ranges
+            if config.output_ranges is None:
+                config.output_ranges = self.__get_ranges(output_set)
+            data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
+                                (','.join(map(str, y))), input_set, output_set))
+
+            column_count = len(config.inputs) + len(config.output_ranges)
+            column_range = range(0, column_count)
+            headers = map(lambda i: 'column_'+str(i), column_range)
+            data_set.insert(0, ','.join(headers))
+            csv = '\n'.join(data_set)
+            tmp_file.write(csv.encode("utf-8"))
+            tmp_file.close()
+            if data_set_path is not None:
+                self.__log_string(log_writer, 'Ignoring data_set_path')
+            data_set_path = str(tmp_file.name)
+
+        if data_set_path is not None:
+            if config.inputs is None:
+                self.__log_string(log_writer, "config.inputs is None")
+                return None, None, None
+            if config.output_ranges is None:
+                self.__log_string(log_writer, "config.output_ranges is None")
+                return None, None, None
+            if tmp_file is not None:
+                self.__log_string(log_writer, "Uploading data set")
+            else:
+                self.__log_string(log_writer, "Uploading data set " +
+                                  data_set_path)
+            config.dataset_id = self.upload_data_set(data_set_path)
+
+        if tmp_file is not None:
+            os.remove(tmp_file.name)
+
+        self.__log_string(log_writer, "Starting...")
+        id = self.optimization_api.post_forest(config=config)
+
+        def signal_handler(sig, frame):
+            self.__log_string(log_writer, "Stopping optimization : "+id)
+            if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
+                print("Stopping optimization : "+id)
+            self.stop_optimization_keras(id)
+
+        signal.signal(signal.SIGINT, signal_handler)
+
+        running = True
+        status = None
+        while running:
+            status = self.optimization_api.get_status(id)
             running = (status.state == 'Active')
             self.__log_status(log_writer, id, status)
             time.sleep(status_interval)
