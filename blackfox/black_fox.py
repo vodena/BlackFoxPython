@@ -368,6 +368,29 @@ class BlackFox:
         else:
             id = self.optimization_api.post(config=config)
 
+        return self.continue_optimize_keras_sync(id, network_path, status_interval, log_writer)
+
+    def continue_optimize_keras_sync(self, id, network_path=None, status_interval=5, log_writer=LogWriter()):
+        """Continue optimization.
+
+        Countinue the Black Fox optimization and finds the best parameters and hyperparameters of a target model neural network.
+
+        Parameters
+        ----------
+        id : str
+            Optimization id
+        network_path : str
+            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging
+        log_writer : str
+            Optional log writer used for logging the optimization process
+
+        Returns
+        -------
+        (BytesIO, KerasOptimizedNetwork, dict)
+            byte array from network model, optimized network info, network metadata
+        """
         def signal_handler(sig, frame):
             self.__log_string(log_writer, "Stopping optimization : "+id)
             if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
@@ -381,6 +404,8 @@ class BlackFox:
         while running:
             try:
                 status = self.optimization_api.get_status(id)
+                if status is not None and len(status) > 0:
+                    status = status[0]
                 running = (status.state == 'Active')
                 self.__log_status(log_writer, id, status)
             except Exception as e:
@@ -622,7 +647,29 @@ class BlackFox:
 
         self.__log_string(log_writer, "Starting...")
         id = self.recurrent_optimization_api.post(config=config)
+        return self.continue_optimize_keras_sync(id, network_path, status_interval, log_writer)
 
+    def continue_optimize_recurrent_keras_sync(self, id, network_path=None, status_interval=5, log_writer=LogWriter()):
+        """Continue optimization.
+
+        Countinue the Black Fox optimization using recurrent neural networks and finds the best parameters and hyperparameters of a target model.
+
+        Parameters
+        ----------
+        id : str
+            Optimization id
+        network_path : str
+            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging
+        log_writer : str
+            Optional log writer used for logging the optimization process
+
+        Returns
+        -------
+        (BytesIO, KerasOptimizedNetwork, dict)
+            byte array from network model, optimized network info, network metadata
+        """
         def signal_handler(sig, frame):
             self.__log_string(log_writer, "Stopping optimization : "+id)
             if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
@@ -635,6 +682,8 @@ class BlackFox:
         status = None
         while running:
             status = self.recurrent_optimization_api.get_status(id)
+            if status is not None and len(status) > 0:
+                status = status[0]
             running = (status.state == 'Active')
             self.__log_status(log_writer, id, status)
             time.sleep(status_interval)
