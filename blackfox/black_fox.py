@@ -44,9 +44,9 @@ class BlackFox:
         if log_writer is not None:
             log_writer.write_string(msg)
 
-    def __log_status(self, log_writer, id, status):
+    def __log_status(self, log_writer, id, status, metric):
         if log_writer is not None:
-            log_writer.write_status(id, status)
+            log_writer.write_status(id, status, metric)
 
     def upload_data_set(self, path):
         id = self.sha1(path)
@@ -329,9 +329,6 @@ class BlackFox:
         if config.hidden_layer_count_range is None:
             config.hidden_layer_count_range = Range(1, 15)
 
-        if config.dropout is None:
-            config.dropout = Range(0, 25)
-
         if config.neurons_per_layer is None:
             if config.inputs is None or config.output_ranges is None:
                 config.neurons_per_layer = Range(1, 10)
@@ -382,7 +379,8 @@ class BlackFox:
             try:
                 status = self.optimization_api.get_status(id)
                 running = (status.state == 'Active')
-                self.__log_status(log_writer, id, status)
+                metric = 'error' if config.problem_type != 'BinaryClassification' else config.binary_optimization_metric
+                self.__log_status(log_writer, id, status, metric)
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
@@ -584,12 +582,6 @@ class BlackFox:
         if config.hidden_layer_count_range is None:
             config.hidden_layer_count_range = Range(1, 15)
 
-        if config.dropout is None:
-            config.dropout = Range(0, 25)
-
-        if config.recurrent_dropout is None:
-            config.recurrent_dropout = Range(0, 25)
-
         if config.neurons_per_layer is None:
             if config.inputs is None or config.output_ranges is None:
                 config.neurons_per_layer = Range(1, 10)
@@ -636,7 +628,7 @@ class BlackFox:
         while running:
             status = self.recurrent_optimization_api.get_status(id)
             running = (status.state == 'Active')
-            self.__log_status(log_writer, id, status)
+            self.__log_status(log_writer, id, status, 'error')
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':

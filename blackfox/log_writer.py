@@ -14,19 +14,21 @@ class LogWriter(object):
     def __init__(self, log_file=sys.stdout):
         self.log_file = log_file
 
-    def write_status(self, id, status):
+    def write_status(self, id, status, metric):
 
         msg = ("%s -> %s, "
                "Generation: %s/%s, "
-               "Validation set error: %f, "
-               "Training set error: %f, "
+               "Validation set %s: %f, "
+               "Training set %s: %f, "
                "Epoch: %d, "
                "Optimization Id: %s") % (
             datetime.now(),
             status.state,
             status.generation,
             status.total_generations,
+            metric,
             status.validation_set_error,
+            metric,
             status.training_set_error,
             status.epoch,
             id

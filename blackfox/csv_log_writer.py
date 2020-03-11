@@ -7,11 +7,11 @@ class CsvLogWriter(object):
     def __init__(self, log_file=sys.stdout, only_change=True):
         self.log_file = log_file
         self.write_string(
-            'Time,Status,Generation,Total generations,Validation set error,Training set error,Epoch,Optimization Id')
+            'Time,Status,Generation,Total generations,Validation set ,Training set error,Epoch,Optimization Id')
         self.only_change = only_change
         self.previous_generation = -1
 
-    def write_status(self, id, status):
+    def write_status(self, id, status, metric):
         if self.only_change == False or self.previous_generation != status.generation:
             msg = ("%s,%s,%s,%s,%f,%f,%d,%s") % (
                 datetime.now(),
