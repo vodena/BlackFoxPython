@@ -33,6 +33,7 @@ class BlackFox:
         configuration = Configuration()
         configuration.host = host
         self.client = ApiClient(configuration)
+        self.info_api = InfoApi(self.client)
         self.data_set_api = DataSetApi(self.client)
         self.network_api = NetworkApi(self.client)
         self.prediction_api = PredictionApi(self.client)
