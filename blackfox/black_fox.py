@@ -18,9 +18,15 @@ from blackfox_restapi.api.rnn_model_api import RnnModelApi
 from blackfox_restapi.api.rnn_optimization_api import RnnOptimizationApi
 from blackfox_restapi.api.random_forest_model_api import RandomForestModelApi
 from blackfox_restapi.api.random_forest_optimization_api import RandomForestOptimizationApi
+from blackfox_restapi.api.xg_boost_model_api import XGBoostModelApi
+from blackfox_restapi.api.xg_boost_optimization_api import XGBoostOptimizationApi
 from blackfox_restapi.models.service_info import ServiceInfo
+from blackfox_restapi.models.problem_type import ProblemType
 
-from blackfox import ApiException, NeuralNetworkType, RandomForestModelType, AnnOptimizationConfig, AnnSeriesOptimizationConfig, RnnOptimizationConfig, RandomForestOptimizationConfig, RandomForestSeriesOptimizationConfig, Range, RangeInt, InputConfig, AnnOptimizationEngineConfig, OptimizationAlgorithm
+from blackfox import (ApiException, NeuralNetworkType, RandomForestModelType, 
+AnnOptimizationConfig, AnnSeriesOptimizationConfig, RnnOptimizationConfig, 
+RandomForestOptimizationConfig, RandomForestSeriesOptimizationConfig, Range, 
+RangeInt, InputConfig, AnnOptimizationEngineConfig, OptimizationAlgorithm)
 from blackfox.log_writer import LogWriter
 from blackfox.validation import (validate_optimization)
 
@@ -30,7 +36,7 @@ BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
 class BlackFox:
 
-    """BlackFox provides methods for neural network parameter optimization.
+    """BlackFox provides methods for neural network, random forest and xgboost parameter optimization.
 
     Parameters
     ----------
@@ -70,14 +76,17 @@ class BlackFox:
         self.rf_model_api = RandomForestModelApi(self.client)
         self.rf_optimization_api = RandomForestOptimizationApi(self.client)
 
+        self.xgb_model_api = XGBoostModelApi(self.client)
+        self.xgb_optimization_api = XGBoostOptimizationApi(self.client)
+
     #region log
     def __log_string(self, log_writer, msg):
         if log_writer is not None:
             log_writer.write_string(msg)
 
-    def __log_status(self, log_writer, id, status):
+    def __log_status(self, log_writer, id, statuses, metric):
         if log_writer is not None:
-            log_writer.write_status(id, status)
+            log_writer.write_status(id, statuses, metric)
     #endregion
 
     #region data set
@@ -166,7 +175,6 @@ class BlackFox:
         self, id, integrate_scaler=False,
         model_type=NeuralNetworkType.H5, path=None
     ):
-        print(id, str(integrate_scaler), str(model_type))
         temp_path = self.ann_model_api.download(
             id, integrate_scaler=integrate_scaler, model_type=model_type)
         if path is None:
@@ -217,7 +225,7 @@ class BlackFox:
 
         Returns
         -------
-        (BytesIO, AnnOptimizedModel, dict)
+        (BytesIO, AnnModel, dict)
             byte array from model, optimized model info, network metadata
         """
         return self.__optimize_ann(
@@ -276,7 +284,7 @@ class BlackFox:
 
         Returns
         -------
-        (BytesIO, AnnOptimizedModel, dict)
+        (BytesIO, AnnModel, dict)
             byte array from model, optimized network info, model metadata
         """
         return self.__optimize_ann(
@@ -307,7 +315,18 @@ class BlackFox:
         status_interval=5,
         log_writer=LogWriter()
     ):
-        print('Use CTRL + C to stop optimization')
+        id = self.__optimize_ann_async(is_series, input_set, output_set, data_set_path, config)
+        metric = 'error' if config.problem_type != ProblemType.BINARYCLASSIFICATION else config.binary_optimization_metric
+        return self.continue_ann_optimization(id, model_type, integrate_scaler, model_path,  delete_on_finish, metric, status_interval, log_writer)
+
+    def __optimize_ann_async(
+        self,
+        is_series=False,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        config=None
+    ):
         tmp_file = None
         if input_set is not None and output_set is not None:
             if type(input_set) is not list:
@@ -331,7 +350,7 @@ class BlackFox:
             tmp_file.write(csv.encode("utf-8"))
             tmp_file.close()
             if data_set_path is not None:
-                self.__log_string(log_writer, 'Ignoring data_set_path')
+                print('Ignoring data_set_path')
             data_set_path = str(tmp_file.name)
 
         if is_series:
@@ -369,30 +388,26 @@ class BlackFox:
 
         if data_set_path is not None:
             if config.inputs is None:
-                self.__log_string(log_writer, "config.inputs is None")
-                return None, None, None
+                raise Exception ("config.inputs is None")
             if config.output_ranges is None:
-                self.__log_string(log_writer, "config.output_ranges is None")
-                return None, None, None
+                raise Exception ("config.output_ranges is None")
             if tmp_file is not None:
-                self.__log_string(log_writer, "Uploading data set")
+                print("Uploading data set")
             else:
-                self.__log_string(
-                    log_writer, "Uploading data set " + data_set_path)
+                print("Uploading data set " + data_set_path)
             config.dataset_id = self.upload_data_set(data_set_path)
 
         if tmp_file is not None:
             os.remove(tmp_file.name)
 
-        self.__log_string(log_writer, "Starting...")
+        print("Starting...")
         if is_series:
             id = self.ann_optimization_api.start_series(ann_series_optimization_config=config)
         else:
             id = self.ann_optimization_api.start(ann_optimization_config=config)
+        return id
 
-        return self.continue_ann_optimization(id, model_type, integrate_scaler, model_path,  delete_on_finish, status_interval, log_writer)
-
-    def continue_ann_optimization(self, id, model_type=NeuralNetworkType.H5, integrate_scaler=False, model_path=None, delete_on_finish=True, status_interval=5, log_writer=LogWriter()):
+    def continue_ann_optimization(self, id, model_type=NeuralNetworkType.H5, integrate_scaler=False, model_path=None, delete_on_finish=True, metric_string='error', status_interval=5, log_writer=LogWriter()):
         """Continue optimization.
 
         Continue the Black Fox optimization and finds the best parameters and hyperparameters of a target model neural network.
@@ -416,9 +431,11 @@ class BlackFox:
 
         Returns
         -------
-        (BytesIO, AnnOptimizedModel, dict)
+        (BytesIO, AnnModel, dict)
             byte array from model, optimized network info, model metadata
         """
+        
+        print('Use CTRL + C to stop optimization')
         def signal_handler(sig, frame):
             self.__log_string(log_writer, "Stopping optimization : "+id)
             if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
@@ -431,17 +448,17 @@ class BlackFox:
         status = None
         while running:
             try:
-                status = self.ann_optimization_api.get_status(id)
-                if status is not None and len(status) > 0:
-                    status = status[-1]
+                statuses = self.ann_optimization_api.get_status(id)
+                if statuses is not None and len(statuses) > 0:
+                    status = statuses[-1]
                 running = (status.state == 'Active')
-                self.__log_status(log_writer, id, status)
+                self.__log_status(log_writer, id, statuses, metric_string)
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            print('Optimization state: ', status.state)
+            print('Optimization ', status.state)
             if status.best_model is not None:
                 model_id = self.ann_optimization_api.get_model_id(id, status.generation)
                 self.__log_string(log_writer, "Downloading model " + model_id)
@@ -472,33 +489,6 @@ class BlackFox:
 
         return None, None, None
 
-    @validate_optimization
-    def optimize_ann_async(
-        self,
-        config=AnnOptimizationConfig(),
-        data_set_path=None
-    ):
-        """Async optimization call.
-
-        Performs the Black Fox optimization asynchronously (non-blocking), so the user must querry the server periodically in order to get the progress info.
-
-        Parameters
-        ----------
-        config : KerasOptimizationConfig
-            Configuration for Black Fox optimization
-        data_set_path : str
-            Path to a .csv file holding the training dataset
-
-        Returns
-        -------
-        str
-            Optimization process id
-        """
-        # validate_optimize_keras(config)
-        if data_set_path is not None:
-            config.dataset_id = self.upload_data_set(data_set_path)
-        return self.optimization_api.post(config=config)
-
     def get_ann_optimization_status(self, id):
         """Gets current async optimization status.
 
@@ -511,7 +501,7 @@ class BlackFox:
         Returns
         -------
         list[AnnOptimizationStatus]
-            An object depicting the current optimization status
+            A list of objects depicting the current optimization status
         """
         status = self.ann_optimization_api.get_status(id)
 
@@ -526,9 +516,6 @@ class BlackFox:
         ----------
         id : str
             Optimization process id
-        model_path : str
-            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
-
         Returns
         -------
         AnnOptimizationStatus
@@ -571,21 +558,16 @@ class BlackFox:
         else:
             shutil.move(temp_path, path)
 
-    def optimize_rnn(
+    def optimize_rnn_async(
         self,
         input_set=None,
         output_set=None,
-        integrate_scaler=False,
-        model_type=NeuralNetworkType.H5,
         data_set_path=None,
-        config=RnnOptimizationConfig(),
-        model_path=None,
-        status_interval=5,
-        log_writer=LogWriter()
+        config=None
     ):
         """Starts the optimization.
 
-        Performs the Black Fox optimization using recurrent neural networks and finds the best parameters and hyperparameters of a target model.
+        Performs the Black Fox async optimization using recurrent neural networks and finds the best parameters and hyperparameters of a target model.
 
         Parameters
         ----------
@@ -593,27 +575,16 @@ class BlackFox:
             Input data (x train data)
         output_set : str
             Output data (y train data or target data)
-        integrate_scaler : bool
-            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
-        model_type : str
-            Optimized model file format (.h5 | .onnx | .pb)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
         config : RnnOptimizationConfig
             Configuration for Black Fox optimization
-        model_path : str
-            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
-        status_interval : int
-            Time interval for repeated server calls for optimization info and logging
-        log_writer : str
-            Optional log writer used for logging the optimization process
 
         Returns
         -------
-        (BytesIO, KerasOptimizedNetwork, dict)
-            byte array from network model, optimized network info, network metadata
+        (BytesIO, AnnOptimizedModel, dict)
+            byte array from model, optimized model info, network metadata
         """
-        print('Use CTRL + C to stop optimization')
         tmp_file = None
         if input_set is not None and output_set is not None:
             if type(input_set) is not list:
@@ -637,7 +608,7 @@ class BlackFox:
             tmp_file.write(csv.encode("utf-8"))
             tmp_file.close()
             if data_set_path is not None:
-                self.__log_string(log_writer, 'Ignoring data_set_path')
+                print('Ignoring data_set_path')
             data_set_path = str(tmp_file.name)
 
         if config.hidden_layer_count_range is None:
@@ -664,26 +635,70 @@ class BlackFox:
 
         if data_set_path is not None:
             if config.inputs is None:
-                self.__log_string(log_writer, "config.inputs is None")
-                return None, None, None
+                raise Exception("config.inputs is None")
             if config.output_ranges is None:
-                self.__log_string(log_writer, "config.output_ranges is None")
-                return None, None, None
+                raise Exception("config.output_ranges is None")
             if tmp_file is not None:
-                self.__log_string(log_writer, "Uploading data set")
+                print("Uploading data set")
             else:
-                self.__log_string(log_writer, "Uploading data set " +
-                                  data_set_path)
+                print("Uploading data set " + data_set_path)
             config.dataset_id = self.upload_data_set(data_set_path)
 
         if tmp_file is not None:
             os.remove(tmp_file.name)
 
-        self.__log_string(log_writer, "Starting...")
-        id = self.rnn_optimization_api.post(config=config)
+        print("Starting...")
+        return self.rnn_optimization_api.post(config=config)
+
+    def optimize_rnn(
+        self,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        config=RnnOptimizationConfig(),
+        model_type=NeuralNetworkType.H5,
+        integrate_scaler=False,
+        model_path=None,
+        delete_on_finish=True,
+        status_interval=5,
+        log_writer=LogWriter()
+    ):
+        """Starts the optimization.
+
+        Performs the Black Fox optimization using recurrent neural networks and finds the best parameters and hyperparameters of a target model.
+
+        Parameters
+        ----------
+        input_set : str
+            Input data (x train data)
+        output_set : str
+            Output data (y train data or target data)
+        data_set_path : str
+            Optional .csv file used instead of input_set/output_set as a source for training data
+        config : RnnOptimizationConfig
+            Configuration for Black Fox optimization
+        model_type : str
+            Optimized model file format (.h5 | .onnx | .pb)
+        integrate_scaler : bool
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
+        model_path : str
+            Save path for the optimized NN; will be used after the function finishes to automatically save optimized model
+        delete_on_finish : bool
+            Delete optimization from service after it has finished
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging
+        log_writer : str
+            Optional log writer used for logging the optimization process
+
+        Returns
+        -------
+        (BytesIO, RnnModel, dict)
+            byte array from model, optimized model info, network metadata
+        """
+        id = self.optimize_rnn_async(input_set, output_set, data_set_path, config)
         return self.continue_rnn_optimization(id, model_path, status_interval, log_writer)
 
-    def continue_rnn_optimization(self, id, model_path=None, status_interval=5, log_writer=LogWriter()):
+    def continue_rnn_optimization(self, id, model_type=NeuralNetworkType.H5, integrate_scaler=False, model_path=None, delete_on_finish=True, metric_string='error', status_interval=5, log_writer=LogWriter()):
         """Continue optimization.
 
         Countinue the Black Fox optimization using recurrent neural networks and finds the best parameters and hyperparameters of a target model.
@@ -692,8 +707,14 @@ class BlackFox:
         ----------
         id : str
             Optimization id
+        model_type : str
+            Optimized model file format (.h5 | .onnx | .pb)
+        integrate_scaler : bool
+            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         model_path : str
-            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+            Save path for the optimized NN; will be used after the function finishes to automatically save optimized model
+        delete_on_finish : bool
+            Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
         log_writer : str
@@ -701,9 +722,11 @@ class BlackFox:
 
         Returns
         -------
-        (BytesIO, KerasOptimizedNetwork, dict)
-            byte array from network model, optimized network info, network metadata
+        (BytesIO, RnnModel, dict)
+            byte array from model, optimized network info, model metadata
         """
+        
+        print('Use CTRL + C to stop optimization')
         def signal_handler(sig, frame):
             self.__log_string(log_writer, "Stopping optimization : "+id)
             if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
@@ -715,34 +738,38 @@ class BlackFox:
         running = True
         status = None
         while running:
-            status = self.recurrent_optimization_api.get_status(id)
-            if status is not None and len(status) > 0:
-                status = status[0]
-            running = (status.state == 'Active')
-            self.__log_status(log_writer, id, status)
+            try:
+                statuses = self.rnn_optimization_api.get_status(id)
+                if statuses is not None and len(statuses) > 0:
+                    status = statuses[-1]
+                running = (status.state == 'Active')
+                self.__log_status(log_writer, id, statuses, metric_string)
+            except Exception as e:
+                self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            print('Optimization state: ', status.state)
-            if status.network is not None and status.network.id is not None:
-                self.__log_string(log_writer,
-                                  "Downloading network " +
-                                  status.network.id)
-                network_stream = self.download_network(
-                    status.network.id,
+            print('Optimization ', status.state)
+            if status.best_model is not None:
+                model_id = self.rnn_optimization_api.get_model_id(id, status.generation)
+                self.__log_string(log_writer, "Downloading model " + model_id)
+                model_stream = self.download_rnn_model(
+                    model_id,
                     integrate_scaler=integrate_scaler,
                     model_type=model_type
                 )
-                data = network_stream.read()
+                data = model_stream.read()
                 if model_path is not None:
                     self.__log_string(log_writer,
-                                      "Saving network " +
-                                      status.network.id + " to " + model_path)
+                                      "Saving model " +
+                                      model_id + " to " + model_path)
                     with open(model_path, 'wb') as f:
                         f.write(data)
                 byte_io = BytesIO(data)
-                metadata = self.network_api.get_metadata(status.network.id)
-                return byte_io, status.network, metadata
+                metadata = self.rnn_model_api.get_metadata(model_id)
+                if delete_on_finish:
+                    self.rnn_optimization_api.delete(id)
+                return byte_io, status.best_model, metadata
             else:
                 return None, None, None
 
@@ -752,6 +779,49 @@ class BlackFox:
             self.__log_string(log_writer, "Unknown error")
 
         return None, None, None
+
+    def get_rnn_optimization_status(self, id):
+        """Gets current async optimization status.
+
+        Query of the current optimization status when it is performed asynchronously.
+
+        Parameters
+        ----------
+        id : str
+            Optimization process id
+        Returns
+        -------
+        list[RnnOptimizationStatus]
+            A list of objects depicting the current optimization status
+        """
+        status = self.rnn_optimization_api.get_status(id)
+
+        return status
+
+    def stop_rnn_optimization(self, id):
+        """Stops current async optimization.
+
+        Sends a request for stopping the ongoing optimization, and returns the current best solution.
+
+        Parameters
+        ----------
+        id : str
+            Optimization process id
+        Returns
+        -------
+        RnnOptimizationStatus
+            An object depicting the current optimization status
+        """
+        self.ann_optimization_api.stop(id)
+        state = 'Active'
+        last_status = None
+        while state == 'Active':
+            status = self.get_ann_optimization_status(id)
+            if status is not None or len(status) > 0:
+                last_status = status[-1]
+                state = last_status.state
+
+        return last_status
 
     #endregion
 
@@ -769,31 +839,30 @@ class BlackFox:
         return id
 
     def download_random_forest_model(
-        self, id, integrate_scaler=False,
-        model_type=RandomForestModelType.BINARY, path=None
+        self, id, model_type=RandomForestModelType.BINARY, path=None
     ):
-        temp_path = self.rf_model_api.download(
-            id, integrate_scaler=integrate_scaler, model_type=model_type)
+        temp_path = self.rf_model_api.download(id, model_type=model_type)
         if path is None:
             return open(temp_path, 'rb')
         else:
             shutil.move(temp_path, path)
+            
 
-    def optimize_random_forest_sync(
+    def optimize_random_forest(
         self,
         input_set=None,
         output_set=None,
-        integrate_scaler=False,
-        model_type='h5',
         data_set_path=None,
-        config=None,
+        config=RandomForestOptimizationConfig(),
+        model_type=RandomForestModelType.BINARY,
         model_path=None,
+        delete_on_finish=True,
         status_interval=5,
         log_writer=LogWriter()
     ):
         """Starts the optimization.
 
-        Performs the Black Fox optimization using random forest and finds the best parameters and hyperparameters of a target model.
+        Performs the Black Fox optimization and finds the best parameters and hyperparameters of a target model random forest.
 
         Parameters
         ----------
@@ -801,16 +870,16 @@ class BlackFox:
             Input data (x train data)
         output_set : str
             Output data (y train data or target data)
-        integrate_scaler : bool
-            If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
-        model_type : str
-            Optimized model file format (.h5 | .onnx | .pb)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
         config : RandomForestOptimizationConfig
             Configuration for Black Fox optimization
+        model_type : str
+            Optimized model file format (.binary | .onnx)
         model_path : str
-            Save path for the optimized NN; will be used after the function finishes to automatically save optimized network
+            Save path for the optimized model; will be used after the function finishes to automatically save optimized model
+        delete_on_finish : bool
+            Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
         log_writer : str
@@ -818,10 +887,102 @@ class BlackFox:
 
         Returns
         -------
-        (BytesIO, KerasOptimizedNetwork, dict)
-            byte array from network model, optimized network info, network metadata
+        (BytesIO, RandomForestModel, dict)
+            byte array from model, optimized model info, network metadata
         """
-        print('Use CTRL + C to stop optimization')
+        return self.__optimize_random_forest(
+            is_series=False,
+            input_set=input_set,
+            output_set=output_set,
+            data_set_path=data_set_path,
+            config=config,
+            model_type=model_type,
+            model_path=model_path,
+            delete_on_finish=delete_on_finish,
+            status_interval=status_interval,
+            log_writer=log_writer
+        )
+
+    def optimize_random_forest_series(
+        self,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        config=RandomForestSeriesOptimizationConfig(),
+        model_type=RandomForestModelType.BINARY,
+        model_path=None,
+        delete_on_finish=True,
+        status_interval=5,
+        log_writer=LogWriter()
+    ):
+        """Starts the optimization.
+
+        Performs the Black Fox optimization for timeseries data and finds the best parameters and hyperparameters of a target model random forest.
+
+        Parameters
+        ----------
+        input_set : str
+            Input data (x train data)
+        output_set : str
+            Output data (y train data or target data)
+        data_set_path : str
+            Optional .csv file used instead of input_set/output_set as a source for training data
+        config : RandomForestSeriesOptimizationConfig
+            Configuration for Black Fox optimization
+        model_type : str
+            Optimized model file format (.binary | .onnx)
+        model_path : str
+            Save path for the optimized model; will be used after the function finishes to automatically save optimized model
+        delete_on_finish : bool
+            Delete optimization from service after it has finished
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging
+        log_writer : str
+            Optional log writer used for logging the optimization process
+
+        Returns
+        -------
+        (BytesIO, RandomForestModel, dict)
+            byte array from model, optimized model info, model metadata
+        """
+        return self.__optimize_random_forest(
+            is_series=True,
+            input_set=input_set,
+            output_set=output_set,
+            data_set_path=data_set_path,
+            config=config,
+            model_type=model_type,
+            model_path=model_path,
+            delete_on_finish=delete_on_finish,
+            status_interval=status_interval,
+            log_writer=log_writer
+        )
+
+    def __optimize_random_forest(
+        self,
+        is_series=False,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        config=None,
+        model_type=RandomForestModelType.BINARY,
+        model_path=None,
+        delete_on_finish=True,
+        status_interval=5,
+        log_writer=LogWriter()
+    ):
+        id = self.__optimize_random_forest_async(is_series, input_set, output_set, data_set_path, config)
+        metric = 'error' if config.problem_type != ProblemType.BINARYCLASSIFICATION else config.binary_optimization_metric
+        return self.continue_random_forest_optimization(id, model_type, model_path,  delete_on_finish, metric, status_interval, log_writer)
+
+    def __optimize_random_forest_async(
+        self,
+        is_series=False,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        config=None
+    ):
         tmp_file = None
         if input_set is not None and output_set is not None:
             if type(input_set) is not list:
@@ -845,33 +1006,71 @@ class BlackFox:
             tmp_file.write(csv.encode("utf-8"))
             tmp_file.close()
             if data_set_path is not None:
-                self.__log_string(log_writer, 'Ignoring data_set_path')
+                print('Ignoring data_set_path')
             data_set_path = str(tmp_file.name)
+
+        if is_series:
+            if len(config.inputs) != len(config.input_window_range_configs):
+                raise Exception('Number of input columns is not same as input_window_range_configs')
+            if len(config.output_ranges) != len(config.output_window_configs):
+                raise Exception('Number of output columns is not same as output_window_configs')
+
+
+        if config.engine_config is None:
+            config.engine_config = OptimizationEngineConfig()
 
         if data_set_path is not None:
             if config.inputs is None:
-                self.__log_string(log_writer, "config.inputs is None")
-                return None, None, None
+                raise Exception ("config.inputs is None")
             if config.output_ranges is None:
-                self.__log_string(log_writer, "config.output_ranges is None")
-                return None, None, None
+                raise Exception ("config.output_ranges is None")
             if tmp_file is not None:
-                self.__log_string(log_writer, "Uploading data set")
+                print("Uploading data set")
             else:
-                self.__log_string(log_writer, "Uploading data set " +
-                                  data_set_path)
+                print("Uploading data set " + data_set_path)
             config.dataset_id = self.upload_data_set(data_set_path)
 
         if tmp_file is not None:
             os.remove(tmp_file.name)
 
-        self.__log_string(log_writer, "Starting...")
-        id = self.optimization_api.post_forest(config=config)
+        print("Starting...")
+        if is_series:
+            id = self.rf_optimization_api.start_series(random_forest_series_optimization_config=config)
+        else:
+            id = self.rf_optimization_api.start(random_forest_optimization_config=config)
+        return id
 
+    def continue_random_forest_optimization(self, id, model_type=RandomForestModelType.BINARY, model_path=None, delete_on_finish=True, metric_string='error', status_interval=5, log_writer=LogWriter()):
+        """Continue optimization.
+
+        Continue the Black Fox optimization and finds the best parameters and hyperparameters of a target model random forest.
+
+        Parameters
+        ----------
+        id : str
+            Optimization id
+        model_type : str
+            Optimized model file format (.binary | .onnx)
+        model_path : str
+            Save path for the optimized model; will be used after the function finishes to automatically save optimized model
+        delete_on_finish : bool
+            Delete optimization from service after it has finished
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging
+        log_writer : str
+            Optional log writer used for logging the optimization process
+
+        Returns
+        -------
+        (BytesIO, RandomForestModel, dict)
+            byte array from model, optimized model info, model metadata
+        """
+        
+        print('Use CTRL + C to stop optimization')
         def signal_handler(sig, frame):
             self.__log_string(log_writer, "Stopping optimization : "+id)
             if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
-                print("Stopping optimization : "+id)
+                print("Stopping optimization: "+id)
             self.stop_random_forest_optimization(id)
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -879,32 +1078,34 @@ class BlackFox:
         running = True
         status = None
         while running:
-            status = self.optimization_api.get_status(id)
-            running = (status.state == 'Active')
-            self.__log_status(log_writer, id, status)
+            try:
+                statuses = self.rf_optimization_api.get_status(id)
+                if statuses is not None and len(statuses) > 0:
+                    status = statuses[-1]
+                running = (status.state == 'Active')
+                self.__log_status(log_writer, id, statuses, metric_string)
+            except Exception as e:
+                self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            print('Optimization state: ', status.state)
-            if status.network is not None and status.network.id is not None:
-                self.__log_string(log_writer,
-                                  "Downloading network " +
-                                  status.network.id)
-                network_stream = self.download_network(
-                    status.network.id,
-                    integrate_scaler=integrate_scaler,
-                    model_type=model_type
-                )
-                data = network_stream.read()
+            print('Optimization ', status.state)
+            if status.best_model is not None:
+                model_id = self.rf_optimization_api.get_model_id(id, status.generation)
+                self.__log_string(log_writer, "Downloading model " + model_id)
+                model_stream = self.download_random_forest_model(model_id, model_type=model_type)
+                data = model_stream.read()
                 if model_path is not None:
                     self.__log_string(log_writer,
-                                      "Saving network " +
-                                      status.network.id + " to " + model_path)
+                                      "Saving model " +
+                                      model_id + " to " + model_path)
                     with open(model_path, 'wb') as f:
                         f.write(data)
                 byte_io = BytesIO(data)
-                metadata = self.network_api.get_metadata(status.network.id)
-                return byte_io, status.network, metadata
+                metadata = self.rf_model_api.get_metadata(model_id)
+                if delete_on_finish:
+                    self.rf_optimization_api.delete(id)
+                return byte_io, status.best_model, metadata
             else:
                 return None, None, None
 
@@ -915,9 +1116,381 @@ class BlackFox:
 
         return None, None, None
 
+    def get_random_forest_optimization_status(self, id):
+        """Gets current async optimization status.
+
+        Query of the current optimization status when it is performed asynchronously.
+
+        Parameters
+        ----------
+        id : str
+            Optimization process id
+        Returns
+        -------
+        list[RandomForestOptimizationStatus]
+            A list of objects depicting the current optimization status
+        """
+        status = self.rf_optimization_api.get_status(id)
+
+        return status
+
+    def stop_random_forest_optimization(self, id):
+        """Stops current async optimization.
+
+        Sends a request for stopping the ongoing optimization, and returns the current best solution.
+
+        Parameters
+        ----------
+        id : str
+            Optimization process id
+        Returns
+        -------
+        RandomForestOptimizationStatus
+            An object depicting the current optimization status
+        """
+        self.rf_optimization_api.stop(id)
+        state = 'Active'
+        last_status = None
+        while state == 'Active':
+            status = self.get_random_forest_optimization_status(id)
+            if status is not None or len(status) > 0:
+                last_status = status[-1]
+                state = last_status.state
+
+        return last_status
+
+    
     #endregion
 
+     #region xgboost
+
+    def upload_xgboost_model(self, path):
+        id = self.__sha1(path)
+        try:
+            self.xgb_model_api.exists(id)
+        except ApiException as e:
+            if e.status == 404:
+                id = self.xgb_model_api.upload(file=path)
+            else:
+                raise e
+        return id
+
+    def download_random_forest_model(
+        self, id, path=None
+    ):
+        temp_path = self.xgb_model_api.download(id)
+        if path is None:
+            return open(temp_path, 'rb')
+        else:
+            shutil.move(temp_path, path)
+            
+
+    def optimize_xgboost(
+        self,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        config=XGBoostOptimizationConfig(),
+        model_path=None,
+        delete_on_finish=True,
+        status_interval=5,
+        log_writer=LogWriter()
+    ):
+        """Starts the optimization.
+
+        Performs the Black Fox optimization and finds the best parameters and hyperparameters of a target model random forest.
+
+        Parameters
+        ----------
+        input_set : str
+            Input data (x train data)
+        output_set : str
+            Output data (y train data or target data)
+        data_set_path : str
+            Optional .csv file used instead of input_set/output_set as a source for training data
+        config : XGBoostOptimizationConfig
+            Configuration for Black Fox optimization
+        model_path : str
+            Save path for the optimized model; will be used after the function finishes to automatically save optimized model
+        delete_on_finish : bool
+            Delete optimization from service after it has finished
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging
+        log_writer : str
+            Optional log writer used for logging the optimization process
+
+        Returns
+        -------
+        (BytesIO, XGBoostModel, dict)
+            byte array from model, optimized model info, network metadata
+        """
+        return self.__optimize_xgboost(
+            is_series=False,
+            input_set=input_set,
+            output_set=output_set,
+            data_set_path=data_set_path,
+            config=config,
+            model_path=model_path,
+            delete_on_finish=delete_on_finish,
+            status_interval=status_interval,
+            log_writer=log_writer
+        )
+
+    def optimize_xgboost_series(
+        self,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        config=XGBoostSeriesOptimizationConfig(),
+        model_path=None,
+        delete_on_finish=True,
+        status_interval=5,
+        log_writer=LogWriter()
+    ):
+        """Starts the optimization.
+
+        Performs the Black Fox optimization for timeseries data and finds the best parameters and hyperparameters of a target model random forest.
+
+        Parameters
+        ----------
+        input_set : str
+            Input data (x train data)
+        output_set : str
+            Output data (y train data or target data)
+        data_set_path : str
+            Optional .csv file used instead of input_set/output_set as a source for training data
+        config : XGBoostSeriesOptimizationConfig
+            Configuration for Black Fox optimization
+        model_path : str
+            Save path for the optimized model; will be used after the function finishes to automatically save optimized model
+        delete_on_finish : bool
+            Delete optimization from service after it has finished
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging
+        log_writer : str
+            Optional log writer used for logging the optimization process
+
+        Returns
+        -------
+        (BytesIO, XGBoostModel, dict)
+            byte array from model, optimized model info, model metadata
+        """
+        return self.__optimize_xgboost(
+            is_series=True,
+            input_set=input_set,
+            output_set=output_set,
+            data_set_path=data_set_path,
+            config=config,
+            model_path=model_path,
+            delete_on_finish=delete_on_finish,
+            status_interval=status_interval,
+            log_writer=log_writer
+        )
+
+    def __optimize_xgboost(
+        self,
+        is_series=False,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        config=None,
+        model_path=None,
+        delete_on_finish=True,
+        status_interval=5,
+        log_writer=LogWriter()
+    ):
+        id = self.__optimize_random_forest_async(is_series, input_set, output_set, data_set_path, config)
+        metric = 'error' if config.problem_type != ProblemType.BINARYCLASSIFICATION else config.binary_optimization_metric
+        return self.continue_random_forest_optimization(id, model_type, model_path, delete_on_finish, metric, status_interval, log_writer)
+
+    def __optimize_xgboost_async(
+        self,
+        is_series=False,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        config=None
+    ):
+        tmp_file = None
+        if input_set is not None and output_set is not None:
+            if type(input_set) is not list:
+                input_set = input_set.tolist()
+            if type(output_set) is not list:
+                output_set = output_set.tolist()
+            tmp_file = NamedTemporaryFile(delete=False)
+            # input ranges
+            config.inputs = self.__fill_inputs(config.inputs, input_set)
+            # output ranges
+            if config.output_ranges is None:
+                config.output_ranges = self.__get_ranges(output_set)
+            data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
+                                (','.join(map(str, y))), input_set, output_set))
+
+            column_count = len(config.inputs) + len(config.output_ranges)
+            column_range = range(0, column_count)
+            headers = map(lambda i: 'column_'+str(i), column_range)
+            data_set.insert(0, ','.join(headers))
+            csv = '\n'.join(data_set)
+            tmp_file.write(csv.encode("utf-8"))
+            tmp_file.close()
+            if data_set_path is not None:
+                print('Ignoring data_set_path')
+            data_set_path = str(tmp_file.name)
+
+        if is_series:
+            if len(config.inputs) != len(config.input_window_range_configs):
+                raise Exception('Number of input columns is not same as input_window_range_configs')
+            if len(config.output_ranges) != len(config.output_window_configs):
+                raise Exception('Number of output columns is not same as output_window_configs')
+
+
+        if config.engine_config is None:
+            config.engine_config = OptimizationEngineConfig()
+
+        if data_set_path is not None:
+            if config.inputs is None:
+                raise Exception ("config.inputs is None")
+            if config.output_ranges is None:
+                raise Exception ("config.output_ranges is None")
+            if tmp_file is not None:
+                print("Uploading data set")
+            else:
+                print("Uploading data set " + data_set_path)
+            config.dataset_id = self.upload_data_set(data_set_path)
+
+        if tmp_file is not None:
+            os.remove(tmp_file.name)
+
+        print("Starting...")
+        if is_series:
+            id = self.xgb_optimization_api.start_series(xg_boost_series_optimization_config=config)
+        else:
+            id = self.xgb_optimization_api.start(xg_boost_optimization_config=config)
+        return id
+
+    def continue_xgboost_optimization(self, id, model_path=None, delete_on_finish=True, metric_string='error', status_interval=5, log_writer=LogWriter()):
+        """Continue optimization.
+
+        Continue the Black Fox optimization and finds the best parameters and hyperparameters of a target model xgboost.
+
+        Parameters
+        ----------
+        id : str
+            Optimization id
+        model_path : str
+            Save path for the optimized model; will be used after the function finishes to automatically save optimized model
+        delete_on_finish : bool
+            Delete optimization from service after it has finished
+        status_interval : int
+            Time interval for repeated server calls for optimization info and logging
+        log_writer : str
+            Optional log writer used for logging the optimization process
+
+        Returns
+        -------
+        (BytesIO, XGBoostModel, dict)
+            byte array from model, optimized model info, model metadata
+        """
+        
+        print('Use CTRL + C to stop optimization')
+        def signal_handler(sig, frame):
+            self.__log_string(log_writer, "Stopping optimization : "+id)
+            if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
+                print("Stopping optimization: "+id)
+            self.stop_xgboost_optimization(id)
+
+        signal.signal(signal.SIGINT, signal_handler)
+
+        running = True
+        status = None
+        while running:
+            try:
+                statuses = self.xgb_optimization_api.get_status(id)
+                if statuses is not None and len(statuses) > 0:
+                    status = statuses[-1]
+                running = (status.state == 'Active')
+                self.__log_status(log_writer, id, statuses, metric_string)
+            except Exception as e:
+                self.__log_string(log_writer, "Error: " + str(e))
+            time.sleep(status_interval)
+
+        if status.state == 'Finished' or status.state == 'Stopped':
+            print('Optimization ', status.state)
+            if status.best_model is not None:
+                model_id = self.xgb_optimization_api.get_model_id(id, status.generation)
+                self.__log_string(log_writer, "Downloading model " + model_id)
+                model_stream = self.download_xgboost_model(model_id, model_type=model_type)
+                data = model_stream.read()
+                if model_path is not None:
+                    self.__log_string(log_writer,
+                                      "Saving model " +
+                                      model_id + " to " + model_path)
+                    with open(model_path, 'wb') as f:
+                        f.write(data)
+                byte_io = BytesIO(data)
+                metadata = self.xgb_model_api.get_metadata(model_id)
+                if delete_on_finish:
+                    self.xgb_optimization_api.delete(id)
+                return byte_io, status.best_model, metadata
+            else:
+                return None, None, None
+
+        elif status.state == 'Error':
+            self.__log_string(log_writer, "Optimization error")
+        else:
+            self.__log_string(log_writer, "Unknown error")
+
+        return None, None, None
+
+    def get_xgboost_optimization_status(self, id):
+        """Gets current async optimization status.
+
+        Query of the current optimization status when it is performed asynchronously.
+
+        Parameters
+        ----------
+        id : str
+            Optimization process id
+        Returns
+        -------
+        list[XGBoostOptimizationStatus]
+            A list of objects depicting the current optimization status
+        """
+        status = self.xgb_optimization_api.get_status(id)
+
+        return status
+
+    def stop_xgboost_optimization(self, id):
+        """Stops current async optimization.
+
+        Sends a request for stopping the ongoing optimization, and returns the current best solution.
+
+        Parameters
+        ----------
+        id : str
+            Optimization process id
+        Returns
+        -------
+        RandomForestOptimizationStatus
+            An object depicting the current optimization status
+        """
+        self.xgb_optimization_api.stop(id)
+        state = 'Active'
+        last_status = None
+        while state == 'Active':
+            status = self.get_xgboost_optimization_status(id)
+            if status is not None or len(status) > 0:
+                last_status = status[-1]
+                state = last_status.state
+
+        return last_status
+
+    
+    #endregion
+
+
     #region metadata
+
     def get_ann_metadata(self, model_path):
         """Ann model metadata retrieval
 
@@ -997,7 +1570,33 @@ class BlackFox:
         else:
             id = self.upload_random_forest_model(model_path)
 
-        return self.random_forest_model_api.get_metadata(id)
+        return self.rf_model_api.get_metadata(id)
+
+    def get_xgboost_metadata(self, model_path):
+        """Random xgboost model metadata retrieval
+
+        Gets the xgboost metadata from a model file.
+
+        Parameters
+        ----------
+        model_path : str
+            Load path for the model file from which the metadata would be read
+        Returns
+        -------
+        dict
+            model metadata
+        """
+        id = None
+        if isinstance(model_path, BytesIO):
+            with NamedTemporaryFile(delete=False) as out:
+                out.write(model_path.read())
+                file_path = str(out.name)
+            id = self.upload_xgboost_model(file_path)
+            os.remove(file_path)
+        else:
+            id = self.upload_xgboost_model(model_path)
+
+        return self.xgb_model_api.get_metadata(id)
 
     #endregion
 
