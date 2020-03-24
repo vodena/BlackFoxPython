@@ -26,7 +26,8 @@ from blackfox_restapi.models.problem_type import ProblemType
 from blackfox import (ApiException, NeuralNetworkType, RandomForestModelType, 
 AnnOptimizationConfig, AnnSeriesOptimizationConfig, RnnOptimizationConfig, 
 RandomForestOptimizationConfig, RandomForestSeriesOptimizationConfig, Range, 
-RangeInt, InputConfig, AnnOptimizationEngineConfig, OptimizationAlgorithm)
+RangeInt, InputConfig, AnnOptimizationEngineConfig, OptimizationAlgorithm, 
+XGBoostOptimizationConfig, XGBoostSeriesOptimizationConfig)
 from blackfox.log_writer import LogWriter
 from blackfox.validation import (validate_optimization)
 
@@ -1299,9 +1300,9 @@ class BlackFox:
         status_interval=5,
         log_writer=LogWriter()
     ):
-        id = self.__optimize_random_forest_async(is_series, input_set, output_set, data_set_path, config)
+        id = self.__optimize_xgboost_async(is_series, input_set, output_set, data_set_path, config)
         metric = 'error' if config.problem_type != ProblemType.BINARYCLASSIFICATION else config.binary_optimization_metric
-        return self.continue_random_forest_optimization(id, model_type, model_path, delete_on_finish, metric, status_interval, log_writer)
+        return self.continue_xgboost_optimization(id, model_path, delete_on_finish, metric, status_interval, log_writer)
 
     def __optimize_xgboost_async(
         self,
