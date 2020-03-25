@@ -85,9 +85,17 @@ class BlackFox:
         if log_writer is not None:
             log_writer.write_string(msg)
 
-    def __log_status(self, log_writer, id, statuses, metric):
+    def __log_nn_statues(self, log_writer, id, statuses, metric):
         if log_writer is not None:
-            log_writer.write_status(id, statuses, metric)
+            log_writer.write_neural_network_statues(id, statuses, metric)
+
+    def __log_rf_statues(self, log_writer, id, statuses, metric):
+        if log_writer is not None:
+            log_writer.write_random_forest_statues(id, statuses, metric)
+
+    def __log_xgb_statues(self, log_writer, id, statuses, metric):
+        if log_writer is not None:
+            log_writer.write_xgboost_statues(id, statuses, metric)
     #endregion
 
     #region data set
@@ -453,13 +461,13 @@ class BlackFox:
                 if statuses is not None and len(statuses) > 0:
                     status = statuses[-1]
                 running = (status.state == 'Active')
-                self.__log_status(log_writer, id, statuses, metric_string)
+                self.__log_nn_statues(log_writer, id, statuses, metric_string)
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            print('Optimization ', status.state)
+            print('Optimization ', status.state, '. Start time: ', status.start_date_time, ", end time: ", status.estimated_date_time)
             if status.best_model is not None:
                 model_id = self.ann_optimization_api.get_model_id(id, status.generation)
                 self.__log_string(log_writer, "Downloading model " + model_id)
@@ -744,13 +752,13 @@ class BlackFox:
                 if statuses is not None and len(statuses) > 0:
                     status = statuses[-1]
                 running = (status.state == 'Active')
-                self.__log_status(log_writer, id, statuses, metric_string)
+                self.__log_nn_statues(log_writer, id, statuses, metric_string)
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            print('Optimization ', status.state)
+            print('Optimization ', status.state, '. Start time: ', status.start_date_time, ", end time: ", status.estimated_date_time)
             if status.best_model is not None:
                 model_id = self.rnn_optimization_api.get_model_id(id, status.generation)
                 self.__log_string(log_writer, "Downloading model " + model_id)
@@ -1016,9 +1024,17 @@ class BlackFox:
             if len(config.output_ranges) != len(config.output_window_configs):
                 raise Exception('Number of output columns is not same as output_window_configs')
 
-
         if config.engine_config is None:
             config.engine_config = OptimizationEngineConfig()
+
+        if config.max_features is None:
+            config.max_features = Range(0.1, 0.5)
+
+        if config.number_of_estimators is None:
+            config.number_of_estimators = RangeInt(100, 1000)
+
+        if config.max_depth is None:
+            config.max_depth = RangeInt(5, 15) 
 
         if data_set_path is not None:
             if config.inputs is None:
@@ -1084,13 +1100,13 @@ class BlackFox:
                 if statuses is not None and len(statuses) > 0:
                     status = statuses[-1]
                 running = (status.state == 'Active')
-                self.__log_status(log_writer, id, statuses, metric_string)
+                self.__log_rf_statues(log_writer, id, statuses, metric_string)
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            print('Optimization ', status.state)
+            print('Optimization ', status.state, '. Start time: ', status.start_date_time, ", end time: ", status.estimated_date_time)
             if status.best_model is not None:
                 model_id = self.rf_optimization_api.get_model_id(id, status.generation)
                 self.__log_string(log_writer, "Downloading model " + model_id)
@@ -1176,10 +1192,10 @@ class BlackFox:
                 raise e
         return id
 
-    def download_random_forest_model(
+    def download_xgboost_model(
         self, id, path=None
     ):
-        temp_path = self.xgb_model_api.download(id)
+        temp_path = self.xgb_model_api.download(id, model_type=model_type)
         if path is None:
             return open(temp_path, 'rb')
         else:
@@ -1343,7 +1359,21 @@ class BlackFox:
                 raise Exception('Number of input columns is not same as input_window_range_configs')
             if len(config.output_ranges) != len(config.output_window_configs):
                 raise Exception('Number of output columns is not same as output_window_configs')
-
+        
+        if config.max_depth is None:
+            config.max_depth=RangeInt(5, 15)
+        if config.min_child_weight is None:
+            config.min_child_weight=RangeInt(1, 15)
+        if config.gamma is None:
+            config.gamma=Range(0.1, 0.5)
+        if config.subsample is None:
+            config.subsample=Range(0.6, 0.9)
+        if config.colsample_bytree is None:
+            config.colsample_bytree=Range(0.6, 0.9)
+        if config.reg_alpha is None:
+            config.reg_alpha=Range(0.0001, 1)
+        if config.learning_rate is None:
+            config.learning_rate=Range(0.01, 1)
 
         if config.engine_config is None:
             config.engine_config = OptimizationEngineConfig()
@@ -1410,13 +1440,13 @@ class BlackFox:
                 if statuses is not None and len(statuses) > 0:
                     status = statuses[-1]
                 running = (status.state == 'Active')
-                self.__log_status(log_writer, id, statuses, metric_string)
+                self.__log_xgb_statues(log_writer, id, statuses, metric_string)
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
-            print('Optimization ', status.state)
+            print('Optimization ', status.state, '. Start time: ', status.start_date_time, ", end time: ", status.estimated_date_time)
             if status.best_model is not None:
                 model_id = self.xgb_optimization_api.get_model_id(id, status.generation)
                 self.__log_string(log_writer, "Downloading model " + model_id)
