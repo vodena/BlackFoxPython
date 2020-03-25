@@ -1195,7 +1195,7 @@ class BlackFox:
     def download_xgboost_model(
         self, id, path=None
     ):
-        temp_path = self.xgb_model_api.download(id, model_type=model_type)
+        temp_path = self.xgb_model_api.download(id)
         if path is None:
             return open(temp_path, 'rb')
         else:
