@@ -657,7 +657,7 @@ class BlackFox:
             os.remove(tmp_file.name)
 
         print("Starting...")
-        return self.rnn_optimization_api.post(config=config)
+        return self.rnn_optimization_api.start(rnn_optimization_config=config)
 
     def optimize_rnn(
         self,
@@ -1450,7 +1450,7 @@ class BlackFox:
             if status.best_model is not None:
                 model_id = self.xgb_optimization_api.get_model_id(id, status.generation)
                 self.__log_string(log_writer, "Downloading model " + model_id)
-                model_stream = self.download_xgboost_model(model_id, model_type=model_type)
+                model_stream = self.download_xgboost_model(model_id)
                 data = model_stream.read()
                 if model_path is not None:
                     self.__log_string(log_writer,
