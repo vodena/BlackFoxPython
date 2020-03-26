@@ -1360,6 +1360,8 @@ class BlackFox:
             if len(config.output_ranges) != len(config.output_window_configs):
                 raise Exception('Number of output columns is not same as output_window_configs')
         
+        if config.n_estimators is None:
+            config.n_estimators=RangeInt(100, 500)
         if config.max_depth is None:
             config.max_depth=RangeInt(5, 15)
         if config.min_child_weight is None:
