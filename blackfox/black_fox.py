@@ -191,7 +191,7 @@ class BlackFox:
         else:
             shutil.move(temp_path, path)
             
-    download_ann_model_for_generation(self, optimization_id, generation, integrate_scaler=False, model_type=NeuralNetworkType.H5, path=None):
+    def download_ann_model_for_generation(self, optimization_id, generation, integrate_scaler=False, model_type=NeuralNetworkType.H5, path=None):
         model_id = self.ann_optimization_api.get_model_id(optimization_id, generation)
         return self.download_ann_model(model_id, integrate_scaler=integrate_scaler, model_type=model_type, path=path)
 
@@ -472,7 +472,7 @@ class BlackFox:
         if status.state == 'Finished' or status.state == 'Stopped':
             print('Optimization ', status.state, '. Start time: ', status.start_date_time, ", end time: ", status.estimated_date_time)
             if status.best_model is not None:
-                 model_id = self.ann_optimization_api.get_model_id(id, status.generation)
+                model_id = self.ann_optimization_api.get_model_id(id, status.generation)
                 self.__log_string(log_writer, "Downloading model " + model_id)
                 model_stream = self.download_ann_model(
                     model_id,
@@ -570,7 +570,7 @@ class BlackFox:
         else:
             shutil.move(temp_path, path)
 
-    download_rnn_model_for_generation(self, optimization_id, generation, integrate_scaler=False, model_type=NeuralNetworkType.H5, path=None):
+    def download_rnn_model_for_generation(self, optimization_id, generation, integrate_scaler=False, model_type=NeuralNetworkType.H5, path=None):
         model_id = self.rnn_optimization_api.get_model_id(optimization_id, generation)
         return self.download_rnn_model(model_id, integrate_scaler=integrate_scaler, model_type=model_type, path=path)
 
@@ -863,7 +863,7 @@ class BlackFox:
         else:
             shutil.move(temp_path, path)
             
-    download_random_forest_model_for_generation(self, optimization_id, generation, model_type=RandomForestModelType.BINARY, path=None):
+    def download_random_forest_model_for_generation(self, optimization_id, generation, model_type=RandomForestModelType.BINARY, path=None):
         model_id = self.rf_optimization_api.get_model_id(optimization_id, generation)
         return self.download_random_forest_model(model_id, model_type=model_type, path=path)
 
@@ -1211,7 +1211,7 @@ class BlackFox:
         else:
             shutil.move(temp_path, path)
             
-    download_xgboost_model_for_generation(self, optimization_id, generation, path=None):
+    def download_xgboost_model_for_generation(self, optimization_id, generation, path=None):
         model_id = self.xgb_optimization_api.get_model_id(optimization_id, generation)
         return self.download_xgboost_model(model_id, path=path)
 
