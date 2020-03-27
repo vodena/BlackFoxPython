@@ -1038,10 +1038,10 @@ class BlackFox:
             config.engine_config = OptimizationEngineConfig()
 
         if config.max_features is None:
-            config.max_features = Range(0.1, 0.5)
+            config.max_features = Range(1/len(config.inputs), 0.5)
 
         if config.number_of_estimators is None:
-            config.number_of_estimators = RangeInt(100, 1000)
+            config.number_of_estimators = RangeInt(1, 500)
 
         if config.max_depth is None:
             config.max_depth = RangeInt(5, 15) 
@@ -1374,7 +1374,7 @@ class BlackFox:
                 raise Exception('Number of output columns is not same as output_window_configs')
         
         if config.n_estimators is None:
-            config.n_estimators=RangeInt(100, 500)
+            config.n_estimators=RangeInt(1, 500)
         if config.max_depth is None:
             config.max_depth=RangeInt(5, 15)
         if config.min_child_weight is None:
