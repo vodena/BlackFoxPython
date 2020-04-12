@@ -6,13 +6,13 @@ class LogWriter(object):
 
     Parameters
     ----------
-    log_file : str
+    file : str
         Optional file or sys.stdout used for logging
 
     """
 
-    def __init__(self, log_file=sys.stdout):
-        self.log_file = log_file
+    def __init__(self, file=sys.stdout):
+        self.log_file = file
 
     def write_neural_network_statues(self, id, statuses, metric):
         status = statuses[-1]

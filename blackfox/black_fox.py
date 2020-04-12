@@ -83,19 +83,35 @@ class BlackFox:
     #region log
     def __log_string(self, log_writer, msg):
         if log_writer is not None:
-            log_writer.write_string(msg)
+            if isinstance(log_writer, list):
+                for writer in log_writer:
+                    writer.write_string(msg)
+            else:
+                log_writer.write_string(msg)
 
     def __log_nn_statues(self, log_writer, id, statuses, metric):
         if log_writer is not None:
-            log_writer.write_neural_network_statues(id, statuses, metric)
+            if isinstance(log_writer, list):
+                for writer in log_writer:
+                    writer.write_neural_network_statues(id, statuses, metric)
+            else:
+                log_writer.write_neural_network_statues(id, statuses, metric)
 
     def __log_rf_statues(self, log_writer, id, statuses, metric):
         if log_writer is not None:
-            log_writer.write_random_forest_statues(id, statuses, metric)
+            if isinstance(log_writer, list):
+                for writer in log_writer:
+                    writer.write_random_forest_statues(id, statuses, metric)
+            else:
+                log_writer.write_random_forest_statues(id, statuses, metric)
 
     def __log_xgb_statues(self, log_writer, id, statuses, metric):
         if log_writer is not None:
-            log_writer.write_xgboost_statues(id, statuses, metric)
+            if isinstance(log_writer, list):
+                for writer in log_writer:
+                    writer.write_xgboost_statues(id, statuses, metric)
+            else:
+                log_writer.write_xgboost_statues(id, statuses, metric)
     #endregion
 
     #region data set
@@ -449,9 +465,7 @@ class BlackFox:
         
         print('Use CTRL + C to stop optimization')
         def signal_handler(sig, frame):
-            self.__log_string(log_writer, "Stopping optimization : "+id)
-            if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
-                print("Stopping optimization: "+id)
+            print("Stopping optimization: "+id)
             self.stop_ann_optimization(id)
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -744,9 +758,7 @@ class BlackFox:
         
         print('Use CTRL + C to stop optimization')
         def signal_handler(sig, frame):
-            self.__log_string(log_writer, "Stopping optimization : "+id)
-            if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
-                print("Stopping optimization: "+id)
+            print("Stopping optimization: "+id)
             self.stop_rnn_optimization(id)
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -1095,9 +1107,7 @@ class BlackFox:
         
         print('Use CTRL + C to stop optimization')
         def signal_handler(sig, frame):
-            self.__log_string(log_writer, "Stopping optimization : "+id)
-            if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
-                print("Stopping optimization: "+id)
+            print("Stopping optimization: "+id)
             self.stop_random_forest_optimization(id)
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -1440,9 +1450,7 @@ class BlackFox:
         
         print('Use CTRL + C to stop optimization')
         def signal_handler(sig, frame):
-            self.__log_string(log_writer, "Stopping optimization : "+id)
-            if hasattr(log_writer, 'log_file') is False or log_writer.log_file is not sys.stdout:
-                print("Stopping optimization: "+id)
+            print("Stopping optimization: "+id)
             self.stop_xgboost_optimization(id)
 
         signal.signal(signal.SIGINT, signal_handler)
