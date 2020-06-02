@@ -230,16 +230,16 @@ class BlackFox:
 
         Parameters
         ----------
-        input_set : str
+        input_set : list[list[float]]
             Input data (x train data)
-        output_set : str
+        output_set : list[list[float]]
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
         config : AnnOptimizationConfig
             Configuration for Black Fox optimization
         model_type : str
-            Optimized model file format (.h5 | .onnx | .pb)
+            Optimized model file format (h5 | onnx | pb)
         integrate_scaler : bool
             If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         model_path : str
@@ -248,7 +248,7 @@ class BlackFox:
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
@@ -289,16 +289,16 @@ class BlackFox:
 
         Parameters
         ----------
-        input_set : str
+        input_set : list[list[float]]
             Input data (x train data)
-        output_set : str
+        output_set : list[list[float]]
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
         config : AnnSeriesOptimizationConfig
             Configuration for Black Fox optimization
         model_type : str
-            Optimized model file format (.h5 | .onnx | .pb)
+            Optimized model file format (h5 | onnx | pb)
         integrate_scaler : bool
             If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         model_path : str
@@ -307,7 +307,7 @@ class BlackFox:
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
@@ -445,7 +445,7 @@ class BlackFox:
         id : str
             Optimization id
         model_type : str
-            Optimized model file format (.h5 | .onnx | .pb)
+            Optimized model file format (h5 | onnx | pb)
         integrate_scaler : bool
             If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         model_path : str
@@ -454,7 +454,7 @@ class BlackFox:
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
@@ -601,9 +601,9 @@ class BlackFox:
 
         Parameters
         ----------
-        input_set : str
+        input_set : list[list[float]]
             Input data (x train data)
-        output_set : str
+        output_set : list[list[float]]
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
@@ -699,16 +699,16 @@ class BlackFox:
 
         Parameters
         ----------
-        input_set : str
+        input_set : list[list[float]]
             Input data (x train data)
-        output_set : str
+        output_set : list[list[float]]
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
         config : RnnOptimizationConfig
             Configuration for Black Fox optimization
         model_type : str
-            Optimized model file format (.h5 | .onnx | .pb)
+            Optimized model file format (h5 | onnx | pb)
         integrate_scaler : bool
             If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         model_path : str
@@ -717,7 +717,7 @@ class BlackFox:
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
@@ -738,7 +738,7 @@ class BlackFox:
         id : str
             Optimization id
         model_type : str
-            Optimized model file format (.h5 | .onnx | .pb)
+            Optimized model file format (h5 | onnx | pb)
         integrate_scaler : bool
             If True, Black Fox will integrate a scaler function used for data scaling/normalization in the model
         model_path : str
@@ -747,7 +747,7 @@ class BlackFox:
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
@@ -897,23 +897,23 @@ class BlackFox:
 
         Parameters
         ----------
-        input_set : str
+        input_set : list[list[float]]
             Input data (x train data)
-        output_set : str
+        output_set : list[list[float]]
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
         config : RandomForestOptimizationConfig
             Configuration for Black Fox optimization
         model_type : str
-            Optimized model file format (.binary | .onnx)
+            Optimized model file format (binary | onnx)
         model_path : str
             Save path for the optimized model; will be used after the function finishes to automatically save optimized model
         delete_on_finish : bool
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
@@ -952,23 +952,23 @@ class BlackFox:
 
         Parameters
         ----------
-        input_set : str
+        input_set : list[list[float]]
             Input data (x train data)
-        output_set : str
+        output_set : list[list[float]]
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
         config : RandomForestSeriesOptimizationConfig
             Configuration for Black Fox optimization
         model_type : str
-            Optimized model file format (.binary | .onnx)
+            Optimized model file format (binary | onnx)
         model_path : str
             Save path for the optimized model; will be used after the function finishes to automatically save optimized model
         delete_on_finish : bool
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
@@ -1089,14 +1089,14 @@ class BlackFox:
         id : str
             Optimization id
         model_type : str
-            Optimized model file format (.binary | .onnx)
+            Optimized model file format (binary | onnx)
         model_path : str
             Save path for the optimized model; will be used after the function finishes to automatically save optimized model
         delete_on_finish : bool
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
@@ -1242,9 +1242,9 @@ class BlackFox:
 
         Parameters
         ----------
-        input_set : str
+        input_set : list[list[float]]
             Input data (x train data)
-        output_set : str
+        output_set : list[list[float]]
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
@@ -1256,7 +1256,7 @@ class BlackFox:
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
@@ -1293,9 +1293,9 @@ class BlackFox:
 
         Parameters
         ----------
-        input_set : str
+        input_set : list[list[float]]
             Input data (x train data)
-        output_set : str
+        output_set : list[list[float]]
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
@@ -1307,7 +1307,7 @@ class BlackFox:
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
@@ -1439,7 +1439,7 @@ class BlackFox:
             Delete optimization from service after it has finished
         status_interval : int
             Time interval for repeated server calls for optimization info and logging
-        log_writer : str
+        log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
 
         Returns
