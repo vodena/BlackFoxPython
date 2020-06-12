@@ -11,7 +11,7 @@ class CsvLogWriter(object):
         self.only_change = only_change
         self.previous_generation = -1
 
-    def write_neural_network_statues(self, id, statuses, metric):
+    def write_neural_network_statues(self, id, statuses):
         if len(statuses) >= 2:
             status = statuses[-2]
             if self.only_change == False or self.previous_generation != status.generation:
@@ -36,7 +36,7 @@ class CsvLogWriter(object):
         )
         self.write_string(msg)
 
-    def write_random_forest_statues(self, id, statuses, metric):
+    def write_random_forest_statues(self, id, statuses):
         if len(statuses) >= 2:
             status = statuses[-2]
             if self.only_change == False or self.previous_generation != status.generation:
@@ -60,8 +60,8 @@ class CsvLogWriter(object):
         )
         self.write_string(msg)
 
-    def write_xgboost_statues(self, id, statuses, metric):
-        self.write_random_forest_statues(id, statuses, metric)
+    def write_xgboost_statues(self, id, statuses):
+        self.write_random_forest_statues(id, statuses)
 
     def write_string(self, msg, clear=False):
         if isinstance(self.log_file, str):

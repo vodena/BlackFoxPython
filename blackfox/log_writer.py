@@ -14,48 +14,54 @@ class LogWriter(object):
     def __init__(self, file=sys.stdout):
         self.log_file = file
 
-    def write_neural_network_statues(self, id, statuses, metric):
+    def write_neural_network_statues(self, id, statuses):
         status = statuses[-1]
-        msg = ("%s - %s, "
-               "Generation: %s/%s, "
-               "Validation set %s: %f, "
-               "Training set %s: %f, "
-               "Epoch: %d, "
-               "Optimization Id: %s") % (
-            datetime.now(),
-            status.state,
-            status.generation,
-            status.total_generations,
-            metric,
-            status.validation_set_error,
-            metric,
-            status.training_set_error,
-            status.epoch,
-            id
-        )
-        self.write_string(msg)
+        if len(statuses) >= 2 or (status.validation_set_error > 0 and status.training_set_error > 0):
+            msg = ("%s - %s, "
+                    "Generation: %s/%s, "
+                    "Validation set %s: %f, "
+                    "Training set %s: %f, "
+                    "Epoch: %d, "
+                    "Optimization Id: %s") % (
+                datetime.now(),
+                status.state,
+                status.generation,
+                status.total_generations,
+                status.metric_name,
+                status.validation_set_error,
+                status.metric_name,
+                status.training_set_error,
+                status.epoch,
+                id
+            )
+            self.write_string(msg)
+        else: 
+            self.write_string("Evaluating initial models")
 
-    def write_random_forest_statues(self, id, statuses, metric):
+    def write_random_forest_statues(self, id, statuses):
         status = statuses[-1]
-        msg = ("%s - %s, "
-               "Generation: %s/%s, "
-               "Validation set %s: %f, "
-               "Training set %s: %f, "
-               "Optimization Id: %s") % (
-            datetime.now(),
-            status.state,
-            status.generation,
-            status.total_generations,
-            metric,
-            status.validation_set_error,
-            metric,
-            status.training_set_error,
-            id
-        )
-        self.write_string(msg)
+        if len(statuses) >= 2 or (status.validation_set_error > 0 and status.training_set_error > 0):
+            msg = ("%s - %s, "
+                "Generation: %s/%s, "
+                "Validation set %s: %f, "
+                "Training set %s: %f, "
+                "Optimization Id: %s") % (
+                datetime.now(),
+                status.state,
+                status.generation,
+                status.total_generations,
+                status.metric_name,
+                status.validation_set_error,
+                status.metric_name,
+                status.training_set_error,
+                id
+            )
+            self.write_string(msg)
+        else: 
+            self.write_string("Evaluating initial models")
 
-    def write_xgboost_statues(self, id, statuses, metric):
-        self.write_random_forest_statues(id, statuses, metric)
+    def write_xgboost_statues(self, id, statuses):
+        self.write_random_forest_statues(id, statuses)
 
     def write_string(self, msg):
         if isinstance(self.log_file, str):

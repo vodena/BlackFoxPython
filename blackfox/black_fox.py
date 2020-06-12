@@ -89,29 +89,29 @@ class BlackFox:
             else:
                 log_writer.write_string(msg)
 
-    def __log_nn_statues(self, log_writer, id, statuses, metric):
+    def __log_nn_statues(self, log_writer, id, statuses):
         if log_writer is not None:
             if isinstance(log_writer, list):
                 for writer in log_writer:
-                    writer.write_neural_network_statues(id, statuses, metric)
+                    writer.write_neural_network_statues(id, statuses)
             else:
-                log_writer.write_neural_network_statues(id, statuses, metric)
+                log_writer.write_neural_network_statues(id, statuses)
 
-    def __log_rf_statues(self, log_writer, id, statuses, metric):
+    def __log_rf_statues(self, log_writer, id, statuses):
         if log_writer is not None:
             if isinstance(log_writer, list):
                 for writer in log_writer:
-                    writer.write_random_forest_statues(id, statuses, metric)
+                    writer.write_random_forest_statues(id, statuses)
             else:
-                log_writer.write_random_forest_statues(id, statuses, metric)
+                log_writer.write_random_forest_statues(id, statuses)
 
-    def __log_xgb_statues(self, log_writer, id, statuses, metric):
+    def __log_xgb_statues(self, log_writer, id, statuses):
         if log_writer is not None:
             if isinstance(log_writer, list):
                 for writer in log_writer:
-                    writer.write_xgboost_statues(id, statuses, metric)
+                    writer.write_xgboost_statues(id, statuses)
             else:
-                log_writer.write_xgboost_statues(id, statuses, metric)
+                log_writer.write_xgboost_statues(id, statuses)
     #endregion
 
     #region data set
@@ -344,8 +344,7 @@ class BlackFox:
         log_writer=LogWriter()
     ):
         id = self.__optimize_ann_async(is_series, input_set, output_set, data_set_path, config)
-        metric = 'error' if config.problem_type != ProblemType.BINARYCLASSIFICATION else config.binary_optimization_metric
-        return self.continue_ann_optimization(id, model_type, integrate_scaler, model_path,  delete_on_finish, metric, status_interval, log_writer)
+        return self.continue_ann_optimization(id, model_type, integrate_scaler, model_path, delete_on_finish, status_interval, log_writer)
 
     def __optimize_ann_async(
         self,
@@ -435,7 +434,7 @@ class BlackFox:
             id = self.ann_optimization_api.start(ann_optimization_config=config)
         return id
 
-    def continue_ann_optimization(self, id, model_type=NeuralNetworkType.H5, integrate_scaler=False, model_path=None, delete_on_finish=True, metric_string='error', status_interval=5, log_writer=LogWriter()):
+    def continue_ann_optimization(self, id, model_type=NeuralNetworkType.H5, integrate_scaler=False, model_path=None, delete_on_finish=True, status_interval=5, log_writer=LogWriter()):
         """Continue optimization.
 
         Continue the Black Fox optimization and finds the best parameters and hyperparameters of a target model neural network.
@@ -478,7 +477,7 @@ class BlackFox:
                 if statuses is not None and len(statuses) > 0:
                     status = statuses[-1]
                 running = (status.state == 'Active')
-                self.__log_nn_statues(log_writer, id, statuses, metric_string)
+                self.__log_nn_statues(log_writer, id, statuses)
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
@@ -726,9 +725,9 @@ class BlackFox:
             byte array from model, optimized model info, network metadata
         """
         id = self.optimize_rnn_async(input_set, output_set, data_set_path, config)
-        return self.continue_rnn_optimization(id, model_path, status_interval, log_writer)
+        return self.continue_rnn_optimization(id, model_type, integrate_scaler, model_path, delete_on_finish, status_interval, log_writer)
 
-    def continue_rnn_optimization(self, id, model_type=NeuralNetworkType.H5, integrate_scaler=False, model_path=None, delete_on_finish=True, metric_string='error', status_interval=5, log_writer=LogWriter()):
+    def continue_rnn_optimization(self, id, model_type=NeuralNetworkType.H5, integrate_scaler=False, model_path=None, delete_on_finish=True, status_interval=5, log_writer=LogWriter()):
         """Continue optimization.
 
         Countinue the Black Fox optimization using recurrent neural networks and finds the best parameters and hyperparameters of a target model.
@@ -771,7 +770,7 @@ class BlackFox:
                 if statuses is not None and len(statuses) > 0:
                     status = statuses[-1]
                 running = (status.state == 'Active')
-                self.__log_nn_statues(log_writer, id, statuses, metric_string)
+                self.__log_nn_statues(log_writer, id, statuses, 'MAE')
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
@@ -1003,8 +1002,7 @@ class BlackFox:
         log_writer=LogWriter()
     ):
         id = self.__optimize_random_forest_async(is_series, input_set, output_set, data_set_path, config)
-        metric = 'error' if config.problem_type != ProblemType.BINARYCLASSIFICATION else config.binary_optimization_metric
-        return self.continue_random_forest_optimization(id, model_type, model_path,  delete_on_finish, metric, status_interval, log_writer)
+        return self.continue_random_forest_optimization(id, model_type, model_path, delete_on_finish, status_interval, log_writer)
 
     def __optimize_random_forest_async(
         self,
@@ -1079,7 +1077,7 @@ class BlackFox:
             id = self.rf_optimization_api.start(random_forest_optimization_config=config)
         return id
 
-    def continue_random_forest_optimization(self, id, model_type=RandomForestModelType.BINARY, model_path=None, delete_on_finish=True, metric_string='error', status_interval=5, log_writer=LogWriter()):
+    def continue_random_forest_optimization(self, id, model_type=RandomForestModelType.BINARY, model_path=None, delete_on_finish=True, status_interval=5, log_writer=LogWriter()):
         """Continue optimization.
 
         Continue the Black Fox optimization and finds the best parameters and hyperparameters of a target model random forest.
@@ -1120,7 +1118,7 @@ class BlackFox:
                 if statuses is not None and len(statuses) > 0:
                     status = statuses[-1]
                 running = (status.state == 'Active')
-                self.__log_rf_statues(log_writer, id, statuses, metric_string)
+                self.__log_rf_statues(log_writer, id, statuses)
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
@@ -1340,8 +1338,7 @@ class BlackFox:
         log_writer=LogWriter()
     ):
         id = self.__optimize_xgboost_async(is_series, input_set, output_set, data_set_path, config)
-        metric = 'error' if config.problem_type != ProblemType.BINARYCLASSIFICATION else config.binary_optimization_metric
-        return self.continue_xgboost_optimization(id, model_path, delete_on_finish, metric, status_interval, log_writer)
+        return self.continue_xgboost_optimization(id, model_path, delete_on_finish, status_interval, log_writer)
 
     def __optimize_xgboost_async(
         self,
@@ -1424,7 +1421,7 @@ class BlackFox:
             id = self.xgb_optimization_api.start(xg_boost_optimization_config=config)
         return id
 
-    def continue_xgboost_optimization(self, id, model_path=None, delete_on_finish=True, metric_string='error', status_interval=5, log_writer=LogWriter()):
+    def continue_xgboost_optimization(self, id, model_path=None, delete_on_finish=True, status_interval=5, log_writer=LogWriter()):
         """Continue optimization.
 
         Continue the Black Fox optimization and finds the best parameters and hyperparameters of a target model xgboost.
@@ -1463,7 +1460,7 @@ class BlackFox:
                 if statuses is not None and len(statuses) > 0:
                     status = statuses[-1]
                 running = (status.state == 'Active')
-                self.__log_xgb_statues(log_writer, id, statuses, metric_string)
+                self.__log_xgb_statues(log_writer, id, statuses)
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
