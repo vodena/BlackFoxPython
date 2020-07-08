@@ -770,7 +770,7 @@ class BlackFox:
                 if statuses is not None and len(statuses) > 0:
                     status = statuses[-1]
                 running = (status.state == 'Active')
-                self.__log_nn_statues(log_writer, id, statuses, 'MAE')
+                self.__log_nn_statues(log_writer, id, statuses)
             except Exception as e:
                 self.__log_string(log_writer, "Error: " + str(e))
             time.sleep(status_interval)
