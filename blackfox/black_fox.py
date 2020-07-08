@@ -183,6 +183,67 @@ class BlackFox:
         return sha1.hexdigest()
     #endregion
 
+    def __create_tmp_csv(self, config, input_set, output_set):
+        if type(input_set) is not list:
+            input_set = input_set.tolist()
+        if type(output_set) is not list:
+            output_set = output_set.tolist()
+        tmp_file = NamedTemporaryFile(delete=False)
+        # input ranges
+        config.inputs = self.__fill_inputs(config.inputs, input_set)
+        # output ranges
+        if config.output_ranges is None:
+            config.output_ranges = self.__get_ranges(output_set)
+        data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
+                            (','.join(map(str, y))), input_set, output_set))
+
+        column_count = len(config.inputs) + len(config.output_ranges)
+        column_range = range(0, column_count)
+        headers = map(lambda i: 'column_'+str(i), column_range)
+        data_set.insert(0, ','.join(headers))
+        csv = '\n'.join(data_set)
+        tmp_file.write(csv.encode("utf-8"))
+        tmp_file.close()
+        data_set_path = str(tmp_file.name)
+        return data_set_path
+
+    def __create_csv(self, config, input_set, output_set, input_validation_set, output_validation_set):
+        data_set_path = None
+        if input_set is not None and output_set is not None:
+            data_set_path = self.__create_tmp_csv(config, input_set, output_set)
+
+        validation_set_path = None
+        if input_validation_set is not None and output_validation_set is not None:
+            validation_set_path = self.__create_tmp_csv(config, input_validation_set, output_validation_set)
+
+        return data_set_path, validation_set_path
+
+    def __upload_csv(self, config, data_set_path, data_file, validation_set_path, validation_file):
+        if data_set_path is not None or data_file is not None:
+            if config.inputs is None:
+                raise Exception ("config.inputs is None")
+            if config.output_ranges is None:
+                raise Exception ("config.output_ranges is None")
+            if data_file is not None:
+                if data_set_path is not None:
+                    print('Ignoring data_set_path')
+                print("Uploading data set")
+                config.dataset_id = self.upload_data_set(data_file)
+                os.remove(data_file)
+            else:
+                print("Uploading data set " + data_set_path)
+                config.dataset_id = self.upload_data_set(data_set_path)
+        
+        if validation_file is not None:
+            if validation_set_path is not None:
+                print('Ignoring validation_set_path')
+            print("Uploading validation data set")
+            config.validation_set_id = self.upload_data_set(validation_file)
+            os.remove(validation_file)
+        elif validation_set_path is not None:
+            print("Uploading validation data set " + validation_set_path)
+            config.validation_set_id = self.upload_data_set(validation_set_path)
+
     #region ann
 
     def upload_ann_model(self, path):
@@ -216,6 +277,9 @@ class BlackFox:
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=AnnOptimizationConfig(),
         model_type=NeuralNetworkType.H5,
         integrate_scaler=False,
@@ -236,6 +300,12 @@ class BlackFox:
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
+        input_validation_set : list[list[float]]
+            Input data (x validation data)
+        output_validation_set : list[list[float]]
+            Output data (y validation data or target data)
+        validation_set_path : str
+            Optional .csv file used instead of input_validation_set/output_validation_set as a source for validation data
         config : AnnOptimizationConfig
             Configuration for Black Fox optimization
         model_type : str
@@ -256,25 +326,17 @@ class BlackFox:
         (BytesIO, AnnModel, dict)
             byte array from model, optimized model info, network metadata
         """
-        return self.__optimize_ann(
-            is_series=False,
-            input_set=input_set,
-            output_set=output_set,
-            data_set_path=data_set_path,
-            config=config,
-            model_type=model_type,
-            integrate_scaler=integrate_scaler,
-            model_path=model_path,
-            delete_on_finish=delete_on_finish,
-            status_interval=status_interval,
-            log_writer=log_writer
-        )
+        id = self.optimize_ann_async(input_set, output_set, data_set_path, input_validation_set, output_validation_set, validation_set_path, config)
+        return self.continue_ann_optimization(id, model_type, integrate_scaler, model_path, delete_on_finish, status_interval, log_writer)
 
     def optimize_ann_series(
         self,
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=AnnSeriesOptimizationConfig(),
         model_type=NeuralNetworkType.H5,
         integrate_scaler=False,
@@ -295,6 +357,12 @@ class BlackFox:
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
+        input_validation_set : list[list[float]]
+            Input data (x validation data)
+        output_validation_set : list[list[float]]
+            Output data (y validation data or target data)
+        validation_set_path : str
+            Optional .csv file used instead of input_validation_set/output_validation_set as a source for validation data
         config : AnnSeriesOptimizationConfig
             Configuration for Black Fox optimization
         model_type : str
@@ -315,36 +383,50 @@ class BlackFox:
         (BytesIO, AnnModel, dict)
             byte array from model, optimized network info, model metadata
         """
-        return self.__optimize_ann(
+        id = self.optimize_ann_series_async(input_set, output_set, data_set_path, input_validation_set, output_validation_set, validation_set_path, config)
+        return self.continue_ann_optimization(id, model_type, integrate_scaler, model_path, delete_on_finish, status_interval, log_writer)
+        
+    def optimize_ann_async(
+        self,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
+        config=None
+    ):
+        return self.__optimize_ann_async(
+            is_series=False,
+            input_set=input_set,
+            output_set=output_set,
+            data_set_path=data_set_path,
+            input_validation_set=input_validation_set,
+            output_validation_set=output_validation_set,
+            validation_set_path=validation_set_path,
+            config=config
+        )
+
+    def optimize_ann_series_async(
+        self,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
+        config=None
+    ):
+        return self.__optimize_ann_async(
             is_series=True,
             input_set=input_set,
             output_set=output_set,
             data_set_path=data_set_path,
-            config=config,
-            model_type=model_type,
-            integrate_scaler=integrate_scaler,
-            model_path=model_path,
-            delete_on_finish=delete_on_finish,
-            status_interval=status_interval,
-            log_writer=log_writer
+            input_validation_set=input_validation_set,
+            output_validation_set=output_validation_set,
+            validation_set_path=validation_set_path,
+            config=config
         )
-
-    def __optimize_ann(
-        self,
-        is_series=False,
-        input_set=None,
-        output_set=None,
-        data_set_path=None,
-        config=None,
-        model_type=NeuralNetworkType.H5,
-        integrate_scaler=False,
-        model_path=None,
-        delete_on_finish=True,
-        status_interval=5,
-        log_writer=LogWriter()
-    ):
-        id = self.__optimize_ann_async(is_series, input_set, output_set, data_set_path, config)
-        return self.continue_ann_optimization(id, model_type, integrate_scaler, model_path, delete_on_finish, status_interval, log_writer)
 
     def __optimize_ann_async(
         self,
@@ -352,34 +434,13 @@ class BlackFox:
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=None
     ):
-        tmp_file = None
-        if input_set is not None and output_set is not None:
-            if type(input_set) is not list:
-                input_set = input_set.tolist()
-            if type(output_set) is not list:
-                output_set = output_set.tolist()
-            tmp_file = NamedTemporaryFile(delete=False)
-            # input ranges
-            config.inputs = self.__fill_inputs(config.inputs, input_set)
-            # output ranges
-            if config.output_ranges is None:
-                config.output_ranges = self.__get_ranges(output_set)
-            data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
-                                (','.join(map(str, y))), input_set, output_set))
-
-            column_count = len(config.inputs) + len(config.output_ranges)
-            column_range = range(0, column_count)
-            headers = map(lambda i: 'column_'+str(i), column_range)
-            data_set.insert(0, ','.join(headers))
-            csv = '\n'.join(data_set)
-            tmp_file.write(csv.encode("utf-8"))
-            tmp_file.close()
-            if data_set_path is not None:
-                print('Ignoring data_set_path')
-            data_set_path = str(tmp_file.name)
-
+        data_file, validation_file = self.__create_csv(config, input_set, output_set, input_validation_set, output_validation_set)
+        
         if is_series:
             if len(config.inputs) != len(config.input_window_range_configs):
                 raise Exception('Number of input columns is not same as input_window_range_configs')
@@ -413,20 +474,8 @@ class BlackFox:
                     max_neurons = 10
                 config.neurons_per_layer = RangeInt(min_neurons, max_neurons)
 
-        if data_set_path is not None:
-            if config.inputs is None:
-                raise Exception ("config.inputs is None")
-            if config.output_ranges is None:
-                raise Exception ("config.output_ranges is None")
-            if tmp_file is not None:
-                print("Uploading data set")
-            else:
-                print("Uploading data set " + data_set_path)
-            config.dataset_id = self.upload_data_set(data_set_path)
-
-        if tmp_file is not None:
-            os.remove(tmp_file.name)
-
+        self.__upload_csv(config, data_set_path, data_file, validation_set_path, validation_file)
+        
         print("Starting...")
         if is_series:
             id = self.ann_optimization_api.start_series(ann_series_optimization_config=config)
@@ -592,6 +641,9 @@ class BlackFox:
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=None
     ):
         """Starts the optimization.
@@ -606,6 +658,12 @@ class BlackFox:
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
+        input_validation_set : list[list[float]]
+            Input data (x validation data)
+        output_validation_set : list[list[float]]
+            Output data (y validation data or target data)
+        validation_set_path : str
+            Optional .csv file used instead of input_validation_set/output_validation_set as a source for validation data
         config : RnnOptimizationConfig
             Configuration for Black Fox optimization
 
@@ -614,31 +672,7 @@ class BlackFox:
         (BytesIO, AnnOptimizedModel, dict)
             byte array from model, optimized model info, network metadata
         """
-        tmp_file = None
-        if input_set is not None and output_set is not None:
-            if type(input_set) is not list:
-                input_set = input_set.tolist()
-            if type(output_set) is not list:
-                output_set = output_set.tolist()
-            tmp_file = NamedTemporaryFile(delete=False)
-            # input ranges
-            config.inputs = self.__fill_inputs(config.inputs, input_set)
-            # output ranges
-            if config.output_ranges is None:
-                config.output_ranges = self.__get_ranges(output_set)
-            data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
-                                (','.join(map(str, y))), input_set, output_set))
-
-            column_count = len(config.inputs) + len(config.output_ranges)
-            column_range = range(0, column_count)
-            headers = map(lambda i: 'column_'+str(i), column_range)
-            data_set.insert(0, ','.join(headers))
-            csv = '\n'.join(data_set)
-            tmp_file.write(csv.encode("utf-8"))
-            tmp_file.close()
-            if data_set_path is not None:
-                print('Ignoring data_set_path')
-            data_set_path = str(tmp_file.name)
+        data_file, validation_file = self.__create_csv(config, input_set, output_set, input_validation_set, output_validation_set)
 
         if config.hidden_layer_count_range is None:
             config.hidden_layer_count_range = RangeInt(1, 15)
@@ -662,19 +696,7 @@ class BlackFox:
                     max_neurons = 10
                 config.neurons_per_layer = RangeInt(min_neurons, max_neurons)
 
-        if data_set_path is not None:
-            if config.inputs is None:
-                raise Exception("config.inputs is None")
-            if config.output_ranges is None:
-                raise Exception("config.output_ranges is None")
-            if tmp_file is not None:
-                print("Uploading data set")
-            else:
-                print("Uploading data set " + data_set_path)
-            config.dataset_id = self.upload_data_set(data_set_path)
-
-        if tmp_file is not None:
-            os.remove(tmp_file.name)
+        self.__upload_csv(config, data_set_path, data_file, validation_set_path, validation_file)
 
         print("Starting...")
         return self.rnn_optimization_api.start(rnn_optimization_config=config)
@@ -684,6 +706,9 @@ class BlackFox:
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=RnnOptimizationConfig(),
         model_type=NeuralNetworkType.H5,
         integrate_scaler=False,
@@ -704,6 +729,12 @@ class BlackFox:
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
+        input_validation_set : list[list[float]]
+            Input data (x validation data)
+        output_validation_set : list[list[float]]
+            Output data (y validation data or target data)
+        validation_set_path : str
+            Optional .csv file used instead of input_validation_set/output_validation_set as a source for validation data
         config : RnnOptimizationConfig
             Configuration for Black Fox optimization
         model_type : str
@@ -724,7 +755,7 @@ class BlackFox:
         (BytesIO, RnnModel, dict)
             byte array from model, optimized model info, network metadata
         """
-        id = self.optimize_rnn_async(input_set, output_set, data_set_path, config)
+        id = self.optimize_rnn_async(input_set, output_set, data_set_path, input_validation_set, output_validation_set, validation_set_path, config)
         return self.continue_rnn_optimization(id, model_type, integrate_scaler, model_path, delete_on_finish, status_interval, log_writer)
 
     def continue_rnn_optimization(self, id, model_type=NeuralNetworkType.H5, integrate_scaler=False, model_path=None, delete_on_finish=True, status_interval=5, log_writer=LogWriter()):
@@ -883,6 +914,9 @@ class BlackFox:
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=RandomForestOptimizationConfig(),
         model_type=RandomForestModelType.BINARY,
         model_path=None,
@@ -902,6 +936,12 @@ class BlackFox:
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
+        input_validation_set : list[list[float]]
+            Input data (x validation data)
+        output_validation_set : list[list[float]]
+            Output data (y validation data or target data)
+        validation_set_path : str
+            Optional .csv file used instead of input_validation_set/output_validation_set as a source for validation data
         config : RandomForestOptimizationConfig
             Configuration for Black Fox optimization
         model_type : str
@@ -920,18 +960,8 @@ class BlackFox:
         (BytesIO, RandomForestModel, dict)
             byte array from model, optimized model info, network metadata
         """
-        return self.__optimize_random_forest(
-            is_series=False,
-            input_set=input_set,
-            output_set=output_set,
-            data_set_path=data_set_path,
-            config=config,
-            model_type=model_type,
-            model_path=model_path,
-            delete_on_finish=delete_on_finish,
-            status_interval=status_interval,
-            log_writer=log_writer
-        )
+        id = self.__optimize_random_forest_async(False, input_set, output_set, data_set_path, input_validation_set, output_validation_set, validation_set_path, config)
+        return self.continue_random_forest_optimization(id, model_type, model_path, delete_on_finish, status_interval, log_writer)
 
     def optimize_random_forest_series(
         self,
@@ -975,34 +1005,50 @@ class BlackFox:
         (BytesIO, RandomForestModel, dict)
             byte array from model, optimized model info, model metadata
         """
-        return self.__optimize_random_forest(
+        id = self.__optimize_random_forest_async(True, input_set, output_set, data_set_path, input_validation_set, output_validation_set, validation_set_path, config)
+        return self.continue_random_forest_optimization(id, model_type, model_path, delete_on_finish, status_interval, log_writer)
+
+    def optimize_random_forest_async(
+        self,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
+        config=None
+    ):
+        return self.__optimize_random_forest_async(
+            is_series=False,
+            input_set=input_set,
+            output_set=output_set,
+            data_set_path=data_set_path,
+            input_validation_set=input_validation_set,
+            output_validation_set=output_validation_set,
+            validation_set_path=validation_set_path,
+            config=config
+        )
+
+    def optimize_random_forest_series_async(
+        self,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
+        config=None
+    ):
+        return self.__optimize_random_forest_async(
             is_series=True,
             input_set=input_set,
             output_set=output_set,
             data_set_path=data_set_path,
-            config=config,
-            model_type=model_type,
-            model_path=model_path,
-            delete_on_finish=delete_on_finish,
-            status_interval=status_interval,
-            log_writer=log_writer
+            input_validation_set=input_validation_set,
+            output_validation_set=output_validation_set,
+            validation_set_path=validation_set_path,
+            config=config
         )
-
-    def __optimize_random_forest(
-        self,
-        is_series=False,
-        input_set=None,
-        output_set=None,
-        data_set_path=None,
-        config=None,
-        model_type=RandomForestModelType.BINARY,
-        model_path=None,
-        delete_on_finish=True,
-        status_interval=5,
-        log_writer=LogWriter()
-    ):
-        id = self.__optimize_random_forest_async(is_series, input_set, output_set, data_set_path, config)
-        return self.continue_random_forest_optimization(id, model_type, model_path, delete_on_finish, status_interval, log_writer)
 
     def __optimize_random_forest_async(
         self,
@@ -1010,33 +1056,12 @@ class BlackFox:
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=None
     ):
-        tmp_file = None
-        if input_set is not None and output_set is not None:
-            if type(input_set) is not list:
-                input_set = input_set.tolist()
-            if type(output_set) is not list:
-                output_set = output_set.tolist()
-            tmp_file = NamedTemporaryFile(delete=False)
-            # input ranges
-            config.inputs = self.__fill_inputs(config.inputs, input_set)
-            # output ranges
-            if config.output_ranges is None:
-                config.output_ranges = self.__get_ranges(output_set)
-            data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
-                                (','.join(map(str, y))), input_set, output_set))
-
-            column_count = len(config.inputs) + len(config.output_ranges)
-            column_range = range(0, column_count)
-            headers = map(lambda i: 'column_'+str(i), column_range)
-            data_set.insert(0, ','.join(headers))
-            csv = '\n'.join(data_set)
-            tmp_file.write(csv.encode("utf-8"))
-            tmp_file.close()
-            if data_set_path is not None:
-                print('Ignoring data_set_path')
-            data_set_path = str(tmp_file.name)
+        data_file, validation_file = self.__create_csv(config, input_set, output_set, input_validation_set, output_validation_set)
 
         if is_series:
             if len(config.inputs) != len(config.input_window_range_configs):
@@ -1056,19 +1081,7 @@ class BlackFox:
         if config.max_depth is None:
             config.max_depth = RangeInt(5, 15) 
 
-        if data_set_path is not None:
-            if config.inputs is None:
-                raise Exception ("config.inputs is None")
-            if config.output_ranges is None:
-                raise Exception ("config.output_ranges is None")
-            if tmp_file is not None:
-                print("Uploading data set")
-            else:
-                print("Uploading data set " + data_set_path)
-            config.dataset_id = self.upload_data_set(data_set_path)
-
-        if tmp_file is not None:
-            os.remove(tmp_file.name)
+        self.__upload_csv(config, data_set_path, data_file, validation_set_path, validation_file)
 
         print("Starting...")
         if is_series:
@@ -1228,6 +1241,9 @@ class BlackFox:
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=XGBoostOptimizationConfig(),
         model_path=None,
         delete_on_finish=True,
@@ -1246,6 +1262,12 @@ class BlackFox:
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
+        input_validation_set : list[list[float]]
+            Input data (x validation data)
+        output_validation_set : list[list[float]]
+            Output data (y validation data or target data)
+        validation_set_path : str
+            Optional .csv file used instead of input_validation_set/output_validation_set as a source for validation data
         config : XGBoostOptimizationConfig
             Configuration for Black Fox optimization
         model_path : str
@@ -1262,23 +1284,17 @@ class BlackFox:
         (BytesIO, XGBoostModel, dict)
             byte array from model, optimized model info, network metadata
         """
-        return self.__optimize_xgboost(
-            is_series=False,
-            input_set=input_set,
-            output_set=output_set,
-            data_set_path=data_set_path,
-            config=config,
-            model_path=model_path,
-            delete_on_finish=delete_on_finish,
-            status_interval=status_interval,
-            log_writer=log_writer
-        )
+        id = self.optimize_xgboost_async(input_set, output_set, data_set_path, input_validation_set, output_validation_set, validation_set_path, config)
+        return self.continue_xgboost_optimization(id, model_path, delete_on_finish, status_interval, log_writer)
 
     def optimize_xgboost_series(
         self,
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=XGBoostSeriesOptimizationConfig(),
         model_path=None,
         delete_on_finish=True,
@@ -1297,6 +1313,12 @@ class BlackFox:
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
+        input_validation_set : list[list[float]]
+            Input data (x validation data)
+        output_validation_set : list[list[float]]
+            Output data (y validation data or target data)
+        validation_set_path : str
+            Optional .csv file used instead of input_validation_set/output_validation_set as a source for validation data
         config : XGBoostSeriesOptimizationConfig
             Configuration for Black Fox optimization
         model_path : str
@@ -1313,32 +1335,50 @@ class BlackFox:
         (BytesIO, XGBoostModel, dict)
             byte array from model, optimized model info, model metadata
         """
-        return self.__optimize_xgboost(
+        id = self.optimize_xgboost_series_async(input_set, output_set, data_set_path, input_validation_set, output_validation_set, validation_set_path, config)
+        return self.continue_xgboost_optimization(id, model_path, delete_on_finish, status_interval, log_writer)
+
+    def optimize_xgboost_async(
+        self,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
+        config=None
+    ):
+        return self.__optimize_xgboost_async(
+            is_series=False,
+            input_set=input_set,
+            output_set=output_set,
+            data_set_path=data_set_path,
+            input_validation_set=input_validation_set,
+            output_validation_set=output_validation_set,
+            validation_set_path=validation_set_path,
+            config=config
+        )
+
+    def optimize_xgboost_series_async(
+        self,
+        input_set=None,
+        output_set=None,
+        data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
+        config=None
+    ):
+        return self.__optimize_xgboost_async(
             is_series=True,
             input_set=input_set,
             output_set=output_set,
             data_set_path=data_set_path,
-            config=config,
-            model_path=model_path,
-            delete_on_finish=delete_on_finish,
-            status_interval=status_interval,
-            log_writer=log_writer
+            input_validation_set=input_validation_set,
+            output_validation_set=output_validation_set,
+            validation_set_path=validation_set_path,
+            config=config
         )
-
-    def __optimize_xgboost(
-        self,
-        is_series=False,
-        input_set=None,
-        output_set=None,
-        data_set_path=None,
-        config=None,
-        model_path=None,
-        delete_on_finish=True,
-        status_interval=5,
-        log_writer=LogWriter()
-    ):
-        id = self.__optimize_xgboost_async(is_series, input_set, output_set, data_set_path, config)
-        return self.continue_xgboost_optimization(id, model_path, delete_on_finish, status_interval, log_writer)
 
     def __optimize_xgboost_async(
         self,
@@ -1346,33 +1386,12 @@ class BlackFox:
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=None
     ):
-        tmp_file = None
-        if input_set is not None and output_set is not None:
-            if type(input_set) is not list:
-                input_set = input_set.tolist()
-            if type(output_set) is not list:
-                output_set = output_set.tolist()
-            tmp_file = NamedTemporaryFile(delete=False)
-            # input ranges
-            config.inputs = self.__fill_inputs(config.inputs, input_set)
-            # output ranges
-            if config.output_ranges is None:
-                config.output_ranges = self.__get_ranges(output_set)
-            data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
-                                (','.join(map(str, y))), input_set, output_set))
-
-            column_count = len(config.inputs) + len(config.output_ranges)
-            column_range = range(0, column_count)
-            headers = map(lambda i: 'column_'+str(i), column_range)
-            data_set.insert(0, ','.join(headers))
-            csv = '\n'.join(data_set)
-            tmp_file.write(csv.encode("utf-8"))
-            tmp_file.close()
-            if data_set_path is not None:
-                print('Ignoring data_set_path')
-            data_set_path = str(tmp_file.name)
+        data_file, validation_file = self.__create_csv(config, input_set, output_set, input_validation_set, output_validation_set)
 
         if is_series:
             if len(config.inputs) != len(config.input_window_range_configs):
@@ -1400,19 +1419,7 @@ class BlackFox:
         if config.engine_config is None:
             config.engine_config = OptimizationEngineConfig()
 
-        if data_set_path is not None:
-            if config.inputs is None:
-                raise Exception ("config.inputs is None")
-            if config.output_ranges is None:
-                raise Exception ("config.output_ranges is None")
-            if tmp_file is not None:
-                print("Uploading data set")
-            else:
-                print("Uploading data set " + data_set_path)
-            config.dataset_id = self.upload_data_set(data_set_path)
-
-        if tmp_file is not None:
-            os.remove(tmp_file.name)
+        self.__upload_csv(config, data_set_path, data_file, validation_set_path, validation_file)
 
         print("Starting...")
         if is_series:
