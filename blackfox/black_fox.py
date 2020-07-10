@@ -227,21 +227,21 @@ class BlackFox:
             if data_file is not None:
                 if data_set_path is not None:
                     print('Ignoring data_set_path')
-                print("Uploading data set")
+                print("Uploading training data")
                 config.dataset_id = self.upload_data_set(data_file)
                 os.remove(data_file)
             else:
-                print("Uploading data set " + data_set_path)
+                print("Uploading training data " + data_set_path)
                 config.dataset_id = self.upload_data_set(data_set_path)
         
         if validation_file is not None:
             if validation_set_path is not None:
                 print('Ignoring validation_set_path')
-            print("Uploading validation data set")
+            print("Uploading validation data")
             config.validation_set_id = self.upload_data_set(validation_file)
             os.remove(validation_file)
         elif validation_set_path is not None:
-            print("Uploading validation data set " + validation_set_path)
+            print("Uploading validation data " + validation_set_path)
             config.validation_set_id = self.upload_data_set(validation_set_path)
 
     #region ann
