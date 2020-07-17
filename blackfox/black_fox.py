@@ -181,6 +181,37 @@ class BlackFox:
             print("File " + path + " doesn't exist.")
 
         return sha1.hexdigest()
+
+    def __set_neurons_count(self, config):
+        if config.neurons_per_layer is None:
+            if config.inputs is None or config.output_ranges is None:
+                config.neurons_per_layer = RangeInt(1, 10)
+            else:
+                avg_count = int(len(config.inputs) + len(config.output_ranges)) / 2
+                min_neurons = int(avg_count / 3)
+                max_neurons = int(avg_count * 3)
+                if min_neurons <= 0:
+                    min_neurons = 1
+                if max_neurons < 10:
+                    max_neurons = 10
+                config.neurons_per_layer = RangeInt(min_neurons, max_neurons)
+
+    def __set_series_neurons_count(self, config):
+        if config.neurons_per_layer is None:
+            if config.input_window_range_configs is None or config.output_window_configs is None:
+                config.neurons_per_layer = RangeInt(1, 10)
+            else:
+                max_inputs = sum([(i.window.max / i.step.max) for i in config.input_window_range_configs])
+                max_outputs = sum([o.window for o in config.output_window_configs])
+                avg_count = int(max_inputs + max_outputs) / 2
+                min_neurons = int(avg_count / 3)
+                max_neurons = int(avg_count * 3)
+                if min_neurons <= 0:
+                    min_neurons = 1
+                if max_neurons < 10:
+                    max_neurons = 10
+                config.neurons_per_layer = RangeInt(min_neurons, max_neurons)
+
     #endregion
 
     def __create_tmp_csv(self, config, input_set, output_set):
@@ -461,18 +492,10 @@ class BlackFox:
             else:
                 config.engine_config.mutation_probability = 0.01
 
-        if config.neurons_per_layer is None:
-            if config.inputs is None or config.output_ranges is None:
-                config.neurons_per_layer = RangeInt(1, 10)
-            else:
-                avg_count = int(len(config.inputs) + len(config.output_ranges)) / 2
-                min_neurons = int(avg_count / 3)
-                max_neurons = int(avg_count * 3)
-                if min_neurons <= 0:
-                    min_neurons = 1
-                if max_neurons < 10:
-                    max_neurons = 10
-                config.neurons_per_layer = RangeInt(min_neurons, max_neurons)
+        if is_series:
+            self.__set_series_neurons_count(config)
+        else:
+            self.__set_neurons_count(config)
 
         self.__upload_csv(config, data_set_path, data_file, validation_set_path, validation_file)
         
@@ -683,18 +706,7 @@ class BlackFox:
         if config.recurrent_dropout is None:
             config.recurrent_dropout = Range(0, 0.25)
 
-        if config.neurons_per_layer is None:
-            if config.inputs is None or config.output_ranges is None:
-                config.neurons_per_layer = RangeInt(1, 10)
-            else:
-                avg_count = int(len(config.inputs) + len(config.output_ranges)) / 2
-                min_neurons = int(avg_count / 3)
-                max_neurons = int(avg_count * 3)
-                if min_neurons <= 0:
-                    min_neurons = 1
-                if max_neurons < 10:
-                    max_neurons = 10
-                config.neurons_per_layer = RangeInt(min_neurons, max_neurons)
+        self.__set_neurons_count(config)
 
         self.__upload_csv(config, data_set_path, data_file, validation_set_path, validation_file)
 
