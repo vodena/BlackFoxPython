@@ -980,6 +980,9 @@ class BlackFox:
         input_set=None,
         output_set=None,
         data_set_path=None,
+        input_validation_set=None,
+        output_validation_set=None,
+        validation_set_path=None,
         config=RandomForestSeriesOptimizationConfig(),
         model_type=RandomForestModelType.BINARY,
         model_path=None,
@@ -999,6 +1002,12 @@ class BlackFox:
             Output data (y train data or target data)
         data_set_path : str
             Optional .csv file used instead of input_set/output_set as a source for training data
+        input_validation_set : list[list[float]]
+            Input data (x validation data)
+        output_validation_set : list[list[float]]
+            Output data (y validation data or target data)
+        validation_set_path : str
+            Optional .csv file used instead of input_validation_set/output_validation_set as a source for validation data
         config : RandomForestSeriesOptimizationConfig
             Configuration for Black Fox optimization
         model_type : str
