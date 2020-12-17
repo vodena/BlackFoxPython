@@ -25,6 +25,8 @@ from blackfox_restapi.models.range import Range
 from blackfox_restapi.models.range_int import RangeInt
 from blackfox_restapi.models.neural_network_type import NeuralNetworkType
 from blackfox_restapi.models.binary_metric import BinaryMetric
+from blackfox_restapi.models.regression_metric import RegressionMetric
+from blackfox_restapi.models.encoding import Encoding
 from blackfox_restapi.models.neural_network_activation_function import NeuralNetworkActivationFunction
 from blackfox_restapi.models.neural_network_training_algorithm import NeuralNetworkTrainingAlgorithm
 

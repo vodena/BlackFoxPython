@@ -13,7 +13,7 @@
 from setuptools import setup, find_packages  # noqa: H301
 
 NAME = "blackfox"
-VERSION = "3.2.0"
+VERSION = "3.3.0"
 # To install the library, run the following
 #
 # python setup.py install
@@ -21,15 +21,15 @@ VERSION = "3.2.0"
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
 
-REQUIRES = ["urllib3 >= 1.15", "six >= 1.10", "certifi", "python-dateutil", "blackfox-restapi >= 3.2.0"]
+REQUIRES = ["urllib3 >= 1.15", "six >= 1.10", "certifi", "python-dateutil", "blackfox-restapi >= 3.3.0, < 3.4.0"]
 
 setup(
     name=NAME,
     version=VERSION,
     description="BlackFox client",
-    author="Tomislav Mrdja",
+    author="Vodena",
     author_email="",
-    url="https://github.com/tmrdja/BlackFoxPython",
+    url="https://github.com/vodena/BlackFoxPython",
     keywords=["BlackFox"],
     install_requires=REQUIRES,
     packages=find_packages(exclude=["test.*", "test"]),

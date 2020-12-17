@@ -19,8 +19,8 @@ class LogWriter(object):
         if len(statuses) >= 2 or (status.validation_set_error > 0 and status.training_set_error > 0):
             msg = ("%s - %s, "
                     "Generation: %s/%s, "
-                    "Validation set %s: %f, "
-                    "Training set %s: %f, "
+                    "Validation set %s: %f%s, "
+                    "Training set %s: %f%s, "
                     "Epoch: %d, "
                     "Optimization Id: %s") % (
                 datetime.now(),
@@ -29,8 +29,10 @@ class LogWriter(object):
                 status.total_generations,
                 status.metric_name,
                 status.validation_set_error,
+                ' %' if status.metric_name == 'MAPE' else '',
                 status.metric_name,
                 status.training_set_error,
+                ' %' if status.metric_name == 'MAPE' else '',
                 status.epoch,
                 id
             )
