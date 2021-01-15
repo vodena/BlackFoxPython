@@ -173,12 +173,12 @@ class BlackFox:
         for input in inputs:
             if input.encoding is None:
                 if isinstance(input.range.max, str) or isinstance(input.range.min, str):
-                    input.encoding = 'Target'
+                    input.encoding = ['Target']
                     input.range.max = None
                     input.range.min = None
                 else:
-                    input.encoding = 'None'
-            elif input.encoding is not 'None' and (isinstance(input.range.max, str) or isinstance(input.range.min, str)):
+                    input.encoding = ['None']
+            elif 'None' not in input.encoding and (isinstance(input.range.max, str) or isinstance(input.range.min, str)):
                 input.range.max = None
                 input.range.min = None
         return inputs
