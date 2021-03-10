@@ -13,7 +13,7 @@
 from setuptools import setup, find_packages  # noqa: H301
 
 NAME = "blackfox"
-VERSION = "4.0.0"
+VERSION = "4.0.2"
 # To install the library, run the following
 #
 # python setup.py install

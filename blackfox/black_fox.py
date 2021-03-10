@@ -566,8 +566,20 @@ class BlackFox:
                     status = statuses[-1]
                 running = (status.state == 'Active')
                 self.__log_nn_statues(log_writer, id, statuses)
+            except ConnectionError as e:
+                self.__log_string(log_writer, "Connection Error, please check your connection.")
+            except ApiException as e:
+                self.__log_string(log_writer, "Server Error: " + str(e.body))
+                print("Stopping optimization: "+id)
+                self.stop_ann_optimization(id)
+                running = False
+                status.state = 'Error'
             except Exception as e:
-                self.__log_string(log_writer, "Error: " + str(e))
+                self.__log_string(log_writer, "Error: " + str(e.args))
+                print("Stopping optimization: "+id)
+                self.stop_ann_optimization(id)
+                running = False
+                status.state = 'Error'
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
@@ -594,7 +606,6 @@ class BlackFox:
                 return byte_io, status.best_model, metadata
             else:
                 return None, None, None
-
         elif status.state == 'Error':
             self.__log_string(log_writer, "Optimization error")
         else:
@@ -830,8 +841,20 @@ class BlackFox:
                     status = statuses[-1]
                 running = (status.state == 'Active')
                 self.__log_nn_statues(log_writer, id, statuses)
+            except ConnectionError as e:
+                self.__log_string(log_writer, "Connection Error, please check your connection.")
+            except ApiException as e:
+                self.__log_string(log_writer, "Server Error: " + str(e.body))
+                print("Stopping optimization: "+id)
+                self.stop_rnn_optimization(id)
+                running = False
+                status.state = 'Error'
             except Exception as e:
-                self.__log_string(log_writer, "Error: " + str(e))
+                self.__log_string(log_writer, "Error: " + str(e.args))
+                print("Stopping optimization: "+id)
+                self.stop_rnn_optimization(id)
+                running = False
+                status.state = 'Error'
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
@@ -1169,8 +1192,20 @@ class BlackFox:
                     status = statuses[-1]
                 running = (status.state == 'Active')
                 self.__log_rf_statues(log_writer, id, statuses)
+            except ConnectionError as e:
+                self.__log_string(log_writer, "Connection Error, please check your connection.")
+            except ApiException as e:
+                self.__log_string(log_writer, "Server Error: " + str(e.body))
+                print("Stopping optimization: "+id)
+                self.stop_random_forest_optimization(id)
+                running = False
+                status.state = 'Error'
             except Exception as e:
-                self.__log_string(log_writer, "Error: " + str(e))
+                self.__log_string(log_writer, "Error: " + str(e.args))
+                print("Stopping optimization: "+id)
+                self.stop_random_forest_optimization(id)
+                running = False
+                status.state = 'Error'
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
@@ -1505,8 +1540,20 @@ class BlackFox:
                     status = statuses[-1]
                 running = (status.state == 'Active')
                 self.__log_xgb_statues(log_writer, id, statuses)
+            except ConnectionError as e:
+                self.__log_string(log_writer, "Connection Error, please check your connection.")
+            except ApiException as e:
+                self.__log_string(log_writer, "Server Error: " + str(e.body))
+                print("Stopping optimization: "+id)
+                self.stop_xgboost_optimization(id)
+                running = False
+                status.state = 'Error'
             except Exception as e:
-                self.__log_string(log_writer, "Error: " + str(e))
+                self.__log_string(log_writer, "Error: " + str(e.args))
+                print("Stopping optimization: "+id)
+                self.stop_xgboost_optimization(id)
+                running = False
+                status.state = 'Error'
             time.sleep(status_interval)
 
         if status.state == 'Finished' or status.state == 'Stopped':
