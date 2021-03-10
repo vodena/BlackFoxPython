@@ -70,6 +70,3 @@ examples/pandas_test.py
 # pip
 Pipfile.lock
 dist/*
-
-# Encoder testing
-EncoderTesting.py
