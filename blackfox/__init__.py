@@ -19,6 +19,8 @@ from blackfox_restapi.models.convergency_criterion import ConvergencyCriterion
 from blackfox_restapi.models.input_config import InputConfig
 from blackfox_restapi.models.input_window_config import InputWindowConfig
 from blackfox_restapi.models.input_window_range_config import InputWindowRangeConfig
+from blackfox_restapi.models.output_config import OutputConfig
+from blackfox_restapi.models.output_window_config import OutputWindowConfig
 from blackfox_restapi.models.output_window_config import OutputWindowConfig
 from blackfox_restapi.models.optimization_engine_config import OptimizationEngineConfig
 from blackfox_restapi.models.range import Range

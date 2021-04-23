@@ -26,7 +26,7 @@ from blackfox_restapi.models.problem_type import ProblemType
 from blackfox import (ApiException, NeuralNetworkType, RandomForestModelType, 
 AnnOptimizationConfig, AnnSeriesOptimizationConfig, RnnOptimizationConfig, 
 RandomForestOptimizationConfig, RandomForestSeriesOptimizationConfig, Range, 
-RangeInt, InputConfig, AnnOptimizationEngineConfig, OptimizationAlgorithm, 
+RangeInt, InputConfig, OutputConfig, AnnOptimizationEngineConfig, OptimizationAlgorithm, 
 XGBoostOptimizationConfig, XGBoostSeriesOptimizationConfig)
 from blackfox.log_writer import LogWriter
 from blackfox.validation import (validate_optimization)
@@ -145,10 +145,43 @@ class BlackFox:
                     r.max = max(r.max, d)
         return ranges
 
-    def __fill_inputs(self, inputs, data_set):    
+    def __fill_outputs(self, outputs, output_set):
+
+        if outputs is None or len(outputs) == 0:
+            outputs = []
+            for row in output_set:
+                for i, d in enumerate(row):
+                    if len(outputs) <= i or outputs[i] is None:
+                        outputs.append(OutputConfig(range = Range(d, d)))
+                    else:
+                        r = outputs[i].range
+                        r.min = min(r.min, d)
+                        r.max = max(r.max, d)
+        else:
+            if len(outputs) < len(output_set[0]) or len(outputs) > len(output_set[0]):
+                raise Exception ("The number of encoding types must match the number of output variables")
+            
+            for j in range(len(outputs)):
+                inp = outputs[j]
+                if inp.range is None:
+                    inp.range = Range()
+                    inp.range.min = output_set[0][j]
+                    inp.range.max = output_set[0][j]
+                    for row in output_set:
+                        d = row[j]
+                        inp.range.min = min(inp.range.min, d)
+                        inp.range.max = max(inp.range.max, d)
+        
+        for output in outputs:
+            if isinstance(output.range.max, str) or isinstance(output.range.min, str):
+                raise Exception ("Output variable contains string observations, please encode it to numerical values.")
+        return outputs
+
+    def __fill_inputs(self, inputs, input_set):
+
         if inputs is None or len(inputs) == 0:
             inputs = []
-            for row in data_set:
+            for row in input_set:
                 for i, d in enumerate(row):
                     if len(inputs) <= i or inputs[i] is None:
                         inputs.append(InputConfig(range = Range(d, d), encoding = None))
@@ -157,15 +190,15 @@ class BlackFox:
                         r.min = min(r.min, d)
                         r.max = max(r.max, d)
         else:
-            if len(inputs) < len(data_set[0]) or len(inputs) > len(data_set[0]):
+            if len(inputs) < len(input_set[0]) or len(inputs) > len(input_set[0]):
                 raise Exception ("The number of encoding types must match the number of input variables")
             for j in range(len(inputs)):
                 inp = inputs[j]
                 if inp.range is None:
                     inp.range = Range()
-                    inp.range.min = data_set[0][j]
-                    inp.range.max = data_set[0][j]
-                    for row in data_set:
+                    inp.range.min = input_set[0][j]
+                    inp.range.max = input_set[0][j]
+                    for row in input_set:
                         d = row[j]
                         inp.range.min = min(inp.range.min, d)
                         inp.range.max = max(inp.range.max, d)
@@ -200,10 +233,10 @@ class BlackFox:
 
     def __set_neurons_count(self, config):
         if config.neurons_per_layer is None:
-            if config.inputs is None or config.output_ranges is None:
+            if config.inputs is None or config.outputs is None:
                 config.neurons_per_layer = RangeInt(1, 10)
             else:
-                avg_count = int(len(config.inputs) + len(config.output_ranges)) / 2
+                avg_count = int(len(config.inputs) + len(config.outputs)) / 2
                 min_neurons = int(avg_count / 3)
                 max_neurons = int(avg_count * 3)
                 if min_neurons <= 0:
@@ -236,15 +269,26 @@ class BlackFox:
         if type(output_set) is not list:
             output_set = output_set.tolist()
         tmp_file = NamedTemporaryFile(delete=False)
+
+        if not isinstance(config, RnnOptimizationConfig):
+            if config.problem_type == 'MultiClassClassification' and len(output_set[0]) == 1:
+                raise Exception ("When MultiClassClassification is being used, output variable must be One-Hot encoded.")
+            if config.problem_type == 'BinaryClassification' and len(output_set[0]) > 1:
+                raise Exception ("BinaryClassification is not allowed for multiple outputs.")
+
         # input ranges
         config.inputs = self.__fill_inputs(config.inputs, input_set)
+        if len(output_set[0]) > 1:
+            for input in config.inputs:
+                if 'Target' in input.encoding:
+                    raise Exception ("Target encoding is not allowed for multiple outputs.")
         # output ranges
-        if config.output_ranges is None:
-            config.output_ranges = self.__get_ranges(output_set)
+        config.outputs = self.__fill_outputs(config.outputs, output_set)
+        
         data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
                             (','.join(map(str, y))), input_set, output_set))
 
-        column_count = len(config.inputs) + len(config.output_ranges)
+        column_count = len(config.inputs) + len(config.outputs)
         column_range = range(0, column_count)
         headers = map(lambda i: 'column_'+str(i), column_range)
         data_set.insert(0, ','.join(headers))
@@ -269,8 +313,8 @@ class BlackFox:
         if data_set_path is not None or data_file is not None:
             if config.inputs is None:
                 raise Exception ("config.inputs is None")
-            if config.output_ranges is None:
-                raise Exception ("config.output_ranges is None")
+            if config.outputs is None:
+                raise Exception ("config.outputs is None")
             if data_file is not None:
                 if data_set_path is not None:
                     print('Ignoring data_set_path')
@@ -491,7 +535,7 @@ class BlackFox:
         if is_series:
             if len(config.inputs) != len(config.input_window_range_configs):
                 raise Exception('Number of input columns is not same as input_window_range_configs')
-            if len(config.output_ranges) != len(config.output_window_configs):
+            if len(config.outputs) != len(config.output_window_configs):
                 raise Exception('Number of output columns is not same as output_window_configs')
 
         if config.hidden_layer_count_range is None:
@@ -1126,7 +1170,7 @@ class BlackFox:
         if is_series:
             if len(config.inputs) != len(config.input_window_range_configs):
                 raise Exception('Number of input columns is not same as input_window_range_configs')
-            if len(config.output_ranges) != len(config.output_window_configs):
+            if len(config.outputs) != len(config.output_window_configs):
                 raise Exception('Number of output columns is not same as output_window_configs')
 
         if config.engine_config is None:
@@ -1468,7 +1512,7 @@ class BlackFox:
         if is_series:
             if len(config.inputs) != len(config.input_window_range_configs):
                 raise Exception('Number of input columns is not same as input_window_range_configs')
-            if len(config.output_ranges) != len(config.output_window_configs):
+            if len(config.outputs) != len(config.output_window_configs):
                 raise Exception('Number of output columns is not same as output_window_configs')
         
         if config.n_estimators is None:

@@ -13,7 +13,7 @@
 from setuptools import setup, find_packages  # noqa: H301
 
 NAME = "blackfox"
-VERSION = "4.0.2"
+VERSION = "5.0.0"
 # To install the library, run the following
 #
 # python setup.py install
@@ -21,7 +21,7 @@ VERSION = "4.0.2"
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
 
-REQUIRES = ["urllib3 >= 1.15", "six >= 1.10", "certifi", "python-dateutil", "blackfox-restapi >= 4.0.0, < 4.1.0"]
+REQUIRES = ["urllib3 >= 1.15", "six >= 1.10", "certifi", "python-dateutil", "blackfox-restapi >= 5.0.0, < 5.1.0"]
 
 setup(
     name=NAME,
