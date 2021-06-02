@@ -174,7 +174,9 @@ class BlackFox:
         
         for output in outputs:
             if isinstance(output.range.max, str) or isinstance(output.range.min, str):
-                raise Exception ("Output variable contains string observations, please encode it to numerical values.")
+                output.range.max = 0
+                output.range.min = 0
+                output.encoding = True
         return outputs
 
     def __fill_inputs(self, inputs, input_set):
@@ -271,19 +273,21 @@ class BlackFox:
         tmp_file = NamedTemporaryFile(delete=False)
 
         if not isinstance(config, RnnOptimizationConfig):
-            if config.problem_type == 'MultiClassClassification' and len(output_set[0]) == 1:
-                raise Exception ("When MultiClassClassification is being used, output variable must be One-Hot encoded.")
             if config.problem_type == 'BinaryClassification' and len(output_set[0]) > 1:
                 raise Exception ("BinaryClassification is not allowed for multiple outputs.")
 
         # input ranges
         config.inputs = self.__fill_inputs(config.inputs, input_set)
-        if len(output_set[0]) > 1:
-            for input in config.inputs:
-                if 'Target' in input.encoding:
-                    raise Exception ("Target encoding is not allowed for multiple outputs.")
+        if not isinstance(config, RnnOptimizationConfig):
+            if len(output_set[0]) > 1 or config.problem_type == 'MultiClassClassification':
+                for input in config.inputs:
+                    if 'Target' in input.encoding:
+                        raise Exception ("Target encoding is not allowed for multiple outputs.")
         # output ranges
         config.outputs = self.__fill_outputs(config.outputs, output_set)
+        if not isinstance(config, RnnOptimizationConfig):
+            if config.problem_type == 'MultiClassClassification' and len(output_set[0]) == 1:
+                config.outputs[0].encoding = True
         
         data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
                             (','.join(map(str, y))), input_set, output_set))
