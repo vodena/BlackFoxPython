@@ -285,9 +285,12 @@ class BlackFox:
                         raise Exception ("Target encoding is not allowed for multiple outputs.")
         # output ranges
         config.outputs = self.__fill_outputs(config.outputs, output_set)
-        if not isinstance(config, RnnOptimizationConfig):
+        if isinstance(config, AnnOptimizationConfig):
             if config.problem_type == 'MultiClassClassification' and len(output_set[0]) == 1:
                 config.outputs[0].encoding = True
+        if isinstance(config, RandomForestOptimizationConfig) or isinstance(config, XGBoostOptimizationConfig):
+            if config.problem_type == 'MultiClassClassification' and len(output_set[0]) != 1:
+                raise Exception ("Target variable should be a 1d array, got an array of shape ({}, {}) instead.".format(len(input_set), len(output_set[0])))
         
         data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
                             (','.join(map(str, y))), input_set, output_set))
