@@ -6,12 +6,15 @@ import signal
 import time
 import shutil
 import hashlib
+import inspect
+import json
 # import ApiClient
 from blackfox_restapi.api_client import ApiClient
 from blackfox_restapi.configuration import Configuration
 # import apis into sdk package
 from blackfox_restapi.api.info_api import InfoApi
 from blackfox_restapi.api.data_set_api import DataSetApi
+from blackfox_restapi.api.custom_metric_api import CustomMetricApi
 from blackfox_restapi.api.ann_model_api import AnnModelApi
 from blackfox_restapi.api.ann_optimization_api import AnnOptimizationApi
 from blackfox_restapi.api.rnn_model_api import RnnModelApi
@@ -22,6 +25,7 @@ from blackfox_restapi.api.xg_boost_model_api import XGBoostModelApi
 from blackfox_restapi.api.xg_boost_optimization_api import XGBoostOptimizationApi
 from blackfox_restapi.models.service_info import ServiceInfo
 from blackfox_restapi.models.problem_type import ProblemType
+from pathlib import Path
 
 from blackfox import (ApiException, NeuralNetworkType, RandomForestModelType, 
 AnnOptimizationConfig, AnnSeriesOptimizationConfig, RnnOptimizationConfig, 
@@ -68,6 +72,8 @@ class BlackFox:
         
         self.data_set_api = DataSetApi(self.client)
 
+        self.custom_metric_api = CustomMetricApi(self.client)
+
         self.ann_model_api = AnnModelApi(self.client)
         self.ann_optimization_api = AnnOptimizationApi(self.client)
 
@@ -112,6 +118,19 @@ class BlackFox:
                     writer.write_xgboost_statues(id, statuses)
             else:
                 log_writer.write_xgboost_statues(id, statuses)
+    #endregion
+
+    #region custom metric
+    def upload_custom_metric(self, path):
+        id = self.__sha1(path)
+        try:
+            self.custom_metric_api.exists(id)
+        except ApiException as e:
+            if e.status == 404:
+                id = self.custom_metric_api.upload(file=path)
+            else:
+                raise e
+        return id
     #endregion
 
     #region data set
@@ -316,6 +335,27 @@ class BlackFox:
 
         return data_set_path, validation_set_path
 
+
+    def __upload_custom_metric_file(self, config):
+        if config.custom_metric is None:
+            return None
+
+        if config.custom_metric_parameters is not None:
+            config.custom_metric_parameters = json.dumps(config.custom_metric_parameters)
+
+        if type(config.custom_metric) == str:
+            print("Uploading custom metric python file")
+            config.custom_metric_id = self.upload_custom_metric(config.custom_metric)
+        else:
+            print("Uploading custom metric function")
+            name_of_provided_function = config.custom_metric.__name__
+            function_as_string = inspect.getsource(config.custom_metric)
+            function_as_string = function_as_string.replace(name_of_provided_function, 'custom_metric')
+            config.custom_metric = name_of_provided_function + ".py"
+            with open(config.custom_metric, "w") as text_file:
+                text_file.write(function_as_string)
+            config.custom_metric_id = self.upload_custom_metric(config.custom_metric)
+
     def __upload_csv(self, config, data_set_path, data_file, validation_set_path, validation_file):
         if data_set_path is not None or data_file is not None:
             if config.inputs is None:
@@ -424,6 +464,7 @@ class BlackFox:
         (BytesIO, AnnModel, dict)
             byte array from model, optimized model info, network metadata
         """
+        
         id = self.optimize_ann_async(input_set, output_set, data_set_path, input_validation_set, output_validation_set, validation_set_path, config)
         return self.continue_ann_optimization(id, model_type, integrate_scaler, model_path, delete_on_finish, status_interval, log_writer)
 
@@ -565,6 +606,8 @@ class BlackFox:
             self.__set_neurons_count(config)
 
         self.__upload_csv(config, data_set_path, data_file, validation_set_path, validation_file)
+        self.__upload_custom_metric_file(config)
+
         
         print("Starting...")
         if is_series:
@@ -573,7 +616,7 @@ class BlackFox:
             id = self.ann_optimization_api.start(ann_optimization_config=config)
         return id
 
-    def continue_ann_optimization(self, id, model_type=NeuralNetworkType.H5, integrate_scaler=False, model_path=None, delete_on_finish=True, status_interval=5, log_writer=LogWriter()):
+    def continue_ann_optimization(self, id, model_type=NeuralNetworkType.H5, integrate_scaler=False, model_path=None, delete_on_finish=True, status_interval=5, log_writer=LogWriter(), custom_metric_id=None):
         """Continue optimization.
 
         Continue the Black Fox optimization and finds the best parameters and hyperparameters of a target model neural network.
@@ -594,13 +637,14 @@ class BlackFox:
             Time interval for repeated server calls for optimization info and logging
         log_writer : list[LogWriter]
             Optional log writer used for logging the optimization process
+        custom_metric_id : str
+            Custom metric id
 
         Returns
         -------
         (BytesIO, AnnModel, dict)
             byte array from model, optimized network info, model metadata
         """
-        
         print('Use CTRL + C to stop optimization')
         def signal_handler(sig, frame):
             print("Stopping optimization: "+id)
@@ -787,6 +831,7 @@ class BlackFox:
         self.__set_neurons_count(config)
 
         self.__upload_csv(config, data_set_path, data_file, validation_set_path, validation_file)
+        self.__upload_custom_metric_file(config)
 
         print("Starting...")
         return self.rnn_optimization_api.start(rnn_optimization_config=config)
@@ -1193,6 +1238,7 @@ class BlackFox:
             config.max_depth = RangeInt(5, 15) 
 
         self.__upload_csv(config, data_set_path, data_file, validation_set_path, validation_file)
+        self.__upload_custom_metric_file(config)
 
         print("Starting...")
         if is_series:
@@ -1543,6 +1589,7 @@ class BlackFox:
             config.engine_config = OptimizationEngineConfig()
 
         self.__upload_csv(config, data_set_path, data_file, validation_set_path, validation_file)
+        self.__upload_custom_metric_file(config)
 
         print("Starting...")
         if is_series:
