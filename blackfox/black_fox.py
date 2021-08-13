@@ -285,6 +285,11 @@ class BlackFox:
     #endregion
 
     def __create_tmp_csv(self, config, input_set, output_set):
+
+        if config.problem_type not in [ProblemType.REGRESSION, ProblemType.BINARYCLASSIFICATION, ProblemType.MULTICLASSCLASSIFICATION]:
+            raise Exception ("Invalid problem type.")
+
+
         if type(input_set) is not list:
             input_set = input_set.tolist()
         if type(output_set) is not list:
@@ -292,24 +297,23 @@ class BlackFox:
         tmp_file = NamedTemporaryFile(delete=False)
 
         if not isinstance(config, RnnOptimizationConfig):
-            if config.problem_type == 'BinaryClassification' and len(output_set[0]) > 1:
+            if config.problem_type == ProblemType.BINARYCLASSIFICATION and len(output_set[0]) > 1:
                 raise Exception ("BinaryClassification is not allowed for multiple outputs.")
 
         # input ranges
         config.inputs = self.__fill_inputs(config.inputs, input_set)
         if not isinstance(config, RnnOptimizationConfig):
-            if len(output_set[0]) > 1 or config.problem_type == 'MultiClassClassification':
+            if len(output_set[0]) > 1 or config.problem_type == ProblemType.MULTICLASSCLASSIFICATION:
                 for input in config.inputs:
                     if 'Target' in input.encoding:
                         raise Exception ("Target encoding is not allowed for multiple outputs.")
         # output ranges
         config.outputs = self.__fill_outputs(config.outputs, output_set)
-        if isinstance(config, AnnOptimizationConfig):
-            if config.problem_type == 'MultiClassClassification' and len(output_set[0]) == 1:
+        if isinstance(config, AnnOptimizationConfig) or isinstance(config, AnnSeriesOptimizationConfig):
+            if config.problem_type == ProblemType.MULTICLASSCLASSIFICATION and len(output_set[0]) == 1:
                 config.outputs[0].encoding = True
-        if isinstance(config, RandomForestOptimizationConfig) or isinstance(config, XGBoostOptimizationConfig):
-            if config.problem_type == 'MultiClassClassification' and len(output_set[0]) != 1:
-                raise Exception ("Target variable should be a 1d array, got an array of shape ({}, {}) instead.".format(len(input_set), len(output_set[0])))
+        if config.problem_type == ProblemType.MULTICLASSCLASSIFICATION and len(output_set[0]) != 1:
+            raise Exception ("Target variable should be a 1d array, got an array of shape ({}, {}) instead.".format(len(input_set), len(output_set[0])))
         
         data_set = list(map(lambda x, y: (','.join(map(str, x)))+',' +
                             (','.join(map(str, y))), input_set, output_set))
